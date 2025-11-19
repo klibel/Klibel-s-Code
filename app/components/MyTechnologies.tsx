@@ -84,7 +84,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT (sin cambios) ---
+// --- ELECTRIC BORDER COMPONENT (Mismo código, pero más eficiente al animar) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -116,13 +116,14 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     const dur = Math.max(0.001, 6 / (speed || 1));
     const scale = 30 * (chaos || 1);
 
+    // 💡 OPTIMIZACIÓN: Solo 'willChange: filter' en el borde con filtro.
     const strokeStyle = useMemo(() => ({
         ...inheritRadius,
         borderWidth: thickness,
         borderStyle: 'solid',
         borderColor: color,
         filter: `url(#${filterId})`,
-        willChange: 'filter, transform', 
+        willChange: 'filter', 
     }), [color, inheritRadius, thickness, filterId]);
 
     const glow1Style = useMemo(() => ({
@@ -217,7 +218,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT ---
+// --- LOGO LOOP COMPONENT (Sin Cambios) ---
 
 const GlobalTimeout = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
 const GlobalClearTimeout = typeof window !== 'undefined' ? window.clearTimeout : clearTimeout;
@@ -486,7 +487,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
 LogoLoop.displayName = 'LogoLoop';
 
 
-// --- SKILL CARD COMPONENT (Memoizado) ---
+// --- SKILL CARD COMPONENT (Memoizado y Optimizado) ---
 
 interface SkillCardProps {
     name: string;
@@ -497,11 +498,10 @@ interface SkillCardProps {
 }
 
 const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
-    // NOTA: Las clases de animación (opacity-0, translate-y-4) se han movido 
-    // al div padre en MisTecnologias para que el transitionDelay funcione correctamente.
     <ElectricBorder 
         color={color} 
-        className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400 will-change-transform"
+        // 💡 OPTIMIZACIÓN: Transición más corta (duration-300) y solo en el transform para más fluidez.
+        className="h-full w-full rounded-xl transition-transform hover:scale-[1.03] duration-300"
     >
         <div 
             className="p-4 h-full min-h-36 flex flex-col items-start rounded-xl bg-slate-800/60 hover:bg-slate-700/70 transition-colors backdrop-blur-sm"
@@ -524,7 +524,7 @@ const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, te
 SkillCard.displayName = 'SkillCard';
 
 
-// --- MAIN APP COMPONENT (Con Intersection Observer) ---
+// --- MAIN APP COMPONENT (Con Intersection Observer y Tiempos Optimizados) ---
 
 const MisTecnologias: FC = () => {
     // 1. Estado para saber si la sección está en la vista
@@ -532,8 +532,8 @@ const MisTecnologias: FC = () => {
     // 2. Referencia al contenedor de las tarjetas
     const cardsContainerRef = useRef<HTMLDivElement>(null);
     
-    // Definimos el retraso base para el escalonamiento (50ms por tarjeta)
-    const baseDelayMs = 50; 
+    // 💡 OPTIMIZACIÓN 1: Reducir el retraso base de 50ms a 30ms para un escalonamiento más rápido.
+    const baseDelayMs = 30; 
 
     // 3. Implementación del Intersection Observer
     useLayoutEffect(() => {
@@ -544,7 +544,7 @@ const MisTecnologias: FC = () => {
                 // Si la sección intersecta (es visible) y aún no hemos animado, la mostramos.
                 if (entry.isIntersecting && !isVisible) {
                     setIsVisible(true);
-                    // Opcional: Desconectar el observador después de la primera aparición
+                    // Desconectar el observador después de la primera aparición
                     observer.unobserve(entry.target); 
                 }
             },
@@ -591,7 +591,6 @@ const MisTecnologias: FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4">
-                {/* 💡 MODIFICACIÓN: Enlazamos la referencia al contenedor */}
                 <div 
                     ref={cardsContainerRef}
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
@@ -599,17 +598,15 @@ const MisTecnologias: FC = () => {
                     {ALL_SKILLS.map((skill, index) => {
                         const delayMs = index * baseDelayMs;
                         
-                        // 💡 Clases condicionales: Las clases de animación están aquí.
-                        // transition-all duration-400 son necesarias para que el 'delay' funcione.
                         const animationClasses = isVisible 
-                            ? 'opacity-100 translate-y-0' // Estado final (visible)
-                            : 'opacity-0 translate-y-4'; // Estado inicial (oculto)
+                            ? 'opacity-100 translate-y-0' 
+                            : 'opacity-0 translate-y-4'; 
                         
                         return (
                             <div 
                                 key={skill.name} 
-                                className={`flex justify-center transition-all duration-400 ${animationClasses}`}
-                                // 💡 Aplicamos el retraso de transición individual
+                                // 💡 OPTIMIZACIÓN 2: Usar duration-300 (más rápido que 400).
+                                className={`flex justify-center transition-all duration-300 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >
                                 <SkillCard 
