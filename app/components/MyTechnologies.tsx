@@ -602,13 +602,13 @@ const MisTecnologias: FC = () => {
                         
                         const animationClasses = isVisible 
                             ? 'opacity-100 translate-y-0' 
-                            : 'opacity-50 translate-y-4'; 
+                            : 'opacity-80 translate-y-4'; 
                         
                         return (
                             <div 
                                 key={skill.name} 
                                 // La duración de la transición se mantiene en 100ms para la aparición.
-                                className={`flex justify-center transition-all duration-100 ${animationClasses}`}
+                                className={`flex justify-center transition-all duration-75 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >
                                 <SkillCard 
