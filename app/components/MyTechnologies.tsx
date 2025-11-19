@@ -4,8 +4,6 @@ import React, {
     useRef, useMemo, useState, memo, FC, 
     ReactNode, useId, useLayoutEffect, useCallback
 } from 'react';
-// Usamos 'styled-jsx/css' para inyectar los keyframes de forma limpia en Next.js
-import css from 'styled-jsx/css'; 
 import {
     SiReact, SiTailwindcss, SiBootstrap, SiGit, SiGithub, SiVscodium, 
     SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss3, SiVite
@@ -32,7 +30,7 @@ const toCssLength = (value: string | number | undefined | null) => (typeof value
 const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(' ');
 
 
-// --- SKILLS DATA LISTS (sin cambios) ---
+// --- SKILLS DATA LISTS ---
 
 interface LogoLoopItem {
     node: ReactNode;
@@ -219,17 +217,13 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT (MAX OPTIMIZACIÓN Y TIPADO CORREGIDO) ---
-
-// 💡 CORRECCIÓN DE TIPADO: Usar NodeJS.Timeout si está presente (entorno Node/Next.js).
-// Si no, forzamos el tipo 'any' o 'number' para compatibilidad con el DOM.
+// --- LOGO LOOP COMPONENT ---
 
 const GlobalTimeout = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
 const GlobalClearTimeout = typeof window !== 'undefined' ? window.clearTimeout : clearTimeout;
 
 const throttle = (fn: Function, delay: number) => {
     let lastTime = 0;
-    // 💡 CORRECCIÓN: Usamos el tipo genérico any para evitar conflictos entre NodeJS.Timeout y number
     let timeoutId: any = null; 
     
     return (...args: any[]) => {
@@ -238,7 +232,6 @@ const throttle = (fn: Function, delay: number) => {
             lastTime = now;
             fn(...args);
         } else if (!timeoutId) {
-            // Usamos GlobalTimeout para mayor compatibilidad
             timeoutId = GlobalTimeout(() => { 
                 lastTime = Date.now();
                 timeoutId = null;
@@ -291,12 +284,10 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             const sequenceWidth = seqRef.current?.getBoundingClientRect?.()?.width ?? 0;
 
             if (sequenceWidth > 0) {
-                // Si el ancho de la secuencia cambió más de 1px
                 if (Math.abs(sequenceWidth - fullWidth) > 1) { 
                     setFullWidth(sequenceWidth);
                 }
                 const copiesNeeded = Math.ceil(containerWidth / sequenceWidth) + 1;
-                // Solo actualiza si el número de copias es distinto
                 if (copiesNeeded !== copyCount) { 
                     setCopyCount(Math.max(2, copiesNeeded));
                 }
@@ -307,15 +298,12 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         const throttledUpdate = useMemo(() => throttle(updateDimensions, 150), [updateDimensions]);
 
         useLayoutEffect(() => {
-            // Primer cálculo forzado.
             updateDimensions(); 
             if (typeof window === 'undefined') return;
 
-            // 1. ResizeObserver para el Contenedor (para cambiar copyCount)
             const roContainer = new ResizeObserver(throttledUpdate);
             if(containerRef.current) roContainer.observe(containerRef.current);
             
-            // 2. Observer para la secuencia (para cambiar fullWidth si el contenido cambia)
             let roSequence: ResizeObserver | null = null;
             const timeoutId = GlobalTimeout(() => {
                  if(seqRef.current) {
@@ -325,7 +313,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             }, 50);
 
 
-            // 3. Listener de resize de ventana (como fallback)
             window.addEventListener('resize', throttledUpdate);
 
             return () => {
@@ -337,7 +324,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         }, [throttledUpdate]); 
 
 
-        // 💡 Cálculo de la duración de la animación (sin cambios):
         const animationDuration = useMemo(() => {
             return fullWidth > 0 ? fullWidth / Math.abs(speed) : 0;
         }, [fullWidth, speed]);
@@ -511,6 +497,8 @@ interface SkillCardProps {
 }
 
 const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
+    // NOTA: Las clases de animación (opacity-0, translate-y-4) se han movido 
+    // al div padre en MisTecnologias para que el transitionDelay funcione correctamente.
     <ElectricBorder 
         color={color} 
         className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400 will-change-transform"
@@ -536,9 +524,47 @@ const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, te
 SkillCard.displayName = 'SkillCard';
 
 
-// --- MAIN APP COMPONENT ---
+// --- MAIN APP COMPONENT (Con Intersection Observer) ---
 
 const MisTecnologias: FC = () => {
+    // 1. Estado para saber si la sección está en la vista
+    const [isVisible, setIsVisible] = useState(false);
+    // 2. Referencia al contenedor de las tarjetas
+    const cardsContainerRef = useRef<HTMLDivElement>(null);
+    
+    // Definimos el retraso base para el escalonamiento (50ms por tarjeta)
+    const baseDelayMs = 50; 
+
+    // 3. Implementación del Intersection Observer
+    useLayoutEffect(() => {
+        if (!cardsContainerRef.current) return;
+        
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // Si la sección intersecta (es visible) y aún no hemos animado, la mostramos.
+                if (entry.isIntersecting && !isVisible) {
+                    setIsVisible(true);
+                    // Opcional: Desconectar el observador después de la primera aparición
+                    observer.unobserve(entry.target); 
+                }
+            },
+            {
+                root: null, // viewport
+                rootMargin: '0px',
+                threshold: 0.2, // Activa cuando el 20% del contenedor es visible
+            }
+        );
+
+        observer.observe(cardsContainerRef.current);
+
+        return () => {
+            // Limpieza al desmontar
+            if (cardsContainerRef.current) {
+                observer.unobserve(cardsContainerRef.current);
+            }
+        };
+    }, [isVisible]);
+
 
     return (
         <div className="min-h-screen bg-black text-white font-inter p-4 sm:p-8 w-full" id="tecnologias">
@@ -565,18 +591,37 @@ const MisTecnologias: FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {ALL_SKILLS.map((skill, index) => (
-                        <div key={skill.name} className="flex justify-center">
-                            <SkillCard 
-                                name={skill.name} 
-                                icon={skill.icon} 
-                                description={skill.description} 
-                                color={skill.color} 
-                                textColor={skill.textColor} 
-                            /> 
-                        </div>
-                    ))}
+                {/* 💡 MODIFICACIÓN: Enlazamos la referencia al contenedor */}
+                <div 
+                    ref={cardsContainerRef}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                >
+                    {ALL_SKILLS.map((skill, index) => {
+                        const delayMs = index * baseDelayMs;
+                        
+                        // 💡 Clases condicionales: Las clases de animación están aquí.
+                        // transition-all duration-400 son necesarias para que el 'delay' funcione.
+                        const animationClasses = isVisible 
+                            ? 'opacity-100 translate-y-0' // Estado final (visible)
+                            : 'opacity-0 translate-y-4'; // Estado inicial (oculto)
+                        
+                        return (
+                            <div 
+                                key={skill.name} 
+                                className={`flex justify-center transition-all duration-400 ${animationClasses}`}
+                                // 💡 Aplicamos el retraso de transición individual
+                                style={{ transitionDelay: `${delayMs}ms` }}
+                            >
+                                <SkillCard 
+                                    name={skill.name} 
+                                    icon={skill.icon} 
+                                    description={skill.description} 
+                                    color={skill.color} 
+                                    textColor={skill.textColor} 
+                                /> 
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
         </div>
