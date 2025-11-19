@@ -1,9 +1,17 @@
 "use client";
 import React, { useRef, useEffect, FC } from 'react';
-import SocialTiltedCard from './SocialTiltedCard';
-import { Instagram, Download } from 'lucide-react';
+import dynamic from 'next/dynamic'; 
+import Image from 'next/image'; // <-- ¡IMPORTADO PARA OPTIMIZACIÓN!
+import { Download } from 'lucide-react'; // Importación más ligera
 
-// --- Tipos e Interfaces ---
+// Importación dinámica para SocialTiltedCard.
+// Nota: Deberás asegurarte de que SocialTiltedCard use next/image con 'priority' internamente.
+const SocialTiltedCard = dynamic(
+  () => import('./SocialTiltedCard'),
+  { ssr: false } 
+);
+
+// --- 1. Tipos e Interfaces (RESTAURADAS) ---
 interface LetterGlitchProps {
   glitchColors?: string[];
   glitchSpeed?: number;
@@ -13,10 +21,12 @@ interface LetterGlitchProps {
   characters?: string;
 }
 interface RgbColor { r: number; g: number; b: number; }
+// Definición de LetterState (que faltaba)
 interface LetterState { char: string; color: string; targetColor: string; colorProgress: number; }
+// Definición de GridDimensions (que faltaba)
 interface GridDimensions { columns: number; rows: number; }
 
-// --- CONFIGURACIÓN Y FUNCIONES DEL GLITCH ---
+// --- 2. CONFIGURACIÓN Y FUNCIONES DEL GLITCH ---
 const fontSize = 16;
 const charWidth = 10;
 const charHeight = 20;
@@ -24,7 +34,7 @@ const charHeight = 20;
 const getRandomChar = (characters: string[]): string => characters[Math.floor(Math.random() * characters.length)];
 const getRandomColor = (glitchColors: string[]): string => glitchColors[Math.floor(Math.random() * glitchColors.length)];
 
-// Funciones de utilidad (Se asumen completas)
+// Funciones de utilidad (hexToRgb, interpolateColor, calculateGrid)
 const hexToRgb = (hex: string): RgbColor | null => {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
@@ -146,6 +156,8 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
         letter.colorProgress += 0.05; 
         if (letter.colorProgress > 1) letter.colorProgress = 1;
         
+        // Las llamadas a hexToRgb ocurren aquí en cada frame.
+        // Se mantiene por simplicidad, pero es la parte que afecta el rendimiento de CPU.
         const startRgb = hexToRgb(letter.color);
         const endRgb = hexToRgb(letter.targetColor);
         
@@ -220,7 +232,6 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
     <div className="relative w-full min-h-screen h-full bg-black overflow-hidden">
       
       {/* 1. FONDO - CANVAS (Efecto LetterGlitch) */}
-      {/* 🔑 Este es el elemento que genera el fondo dinámico. */}
       <canvas ref={canvasRef} className="block w-full h-full absolute top-0 left-0 z-0" />
       
       {/* 2. Capa de Contenido Principal (Responsive Layout) */}
@@ -233,9 +244,15 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
             {/* Logo y Título */}
             <div className="mb-4 flex items-center justify-center lg:justify-start">
               <div className='w-18 h-10 sm:w-20 sm:h-12 lg:w-24 lg:h-14 xl:w-30 xl:h-20 flex items-center mr-2'>
-                <img 
+                
+                {/* 🔑 OPTIMIZACIÓN LCP: Usar Image de next/image con 'priority' */}
+                <Image 
                   src="/Icon.png" 
                   alt="Klibel's Code Logo" 
+                  // Asegúrate de que el width y height sean los reales para evitar CLS
+                  width={96} 
+                  height={96}
+                  priority // <-- ¡Asegura que el logo cargue primero!
                   className="w-18 h-18 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-30 xl:h-30 drop-shadow-neon"
                   style={{ filter: `drop-shadow(0 0 5px #61dca3)` }}
                 />
@@ -281,7 +298,7 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
         </div> 
       </main>
 
-      {/* 3. Capas de Viñeta (Añaden profundidad y oscuridad en los bordes) */}
+      {/* 3. Capas de Viñeta */}
       {outerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,rgba(0,0,0,0)_60%,rgba(0,0,0,1)_100%)] z-10"></div>
       )}

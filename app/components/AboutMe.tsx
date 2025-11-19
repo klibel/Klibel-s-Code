@@ -1,20 +1,19 @@
 // src/components/AboutMe.tsx
 
+"use client";
 import React, { FC } from 'react';
+import Image from 'next/image'; // Importación clave para rendimiento
 
 const AboutMe: FC = () => {
-  // Definimos el color del borde y el fondo para mantener consistencia
-  const BORDER_COLOR = '#61dca3'; // Verde neón
-  const DARK_BG = '#080010';     // Fondo muy oscuro, casi negro
+  const BORDER_COLOR = '#61dca3';
+  const DARK_BG = '#080010';
 
   return (
-    // Contenedor principal
     <section 
       className="relative w-full min-h-screen px-3 lg:px-6 py-6 flex items-center justify-center bg-black overflow-hidden"
       style={{ backgroundColor: DARK_BG }}
+      id='sobreMi' // Añadir ID para navegación
     >
-      
-      {/* Contenedor de la Tarjeta/Sección */}
       <div 
         className="max-w-6xl w-full mx-auto p-6 lg:p-10 rounded-2xl relative z-10"
         style={{
@@ -24,13 +23,10 @@ const AboutMe: FC = () => {
           backdropFilter: 'blur(5px)'
         }}
       >
-        {/* Contenido: Usa flexbox para las dos columnas (50/50) */}
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
           
-          {/* Columna Izquierda: Descripción (50% de ancho en escritorio) */}
           <div className="w-full lg:w-1/2 text-white">
             
-            {/* 1. TEXTO DE DESCRIPCIÓN */}
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#61dca3] mb-4 leading-tight">
                 Klibel Romero 
                 <br />
@@ -49,10 +45,8 @@ const AboutMe: FC = () => {
                 Me especializo en todo lo que el usuario ve y toca. Descubre en mis proyectos cómo combino la estética con el código limpio.
             </p>
 
-            {/* 2. CONTADORES DE MÉTRICAS */}
             <div className="flex flex-row justify-evenly gap-8 sm:gap-12 mt-8 border-t border-gray-700 pt-6">
                 
-                {/* Contador 1: Años de Experiencia */}
                 <div className="flex flex-col items-center">
                     <span className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-[#61dca3] leading-none">
                         2+
@@ -62,7 +56,6 @@ const AboutMe: FC = () => {
                     </span>
                 </div>
 
-                {/* Contador 2: Proyectos Personales */}
                 <div className="flex flex-col items-center">
                     <span className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-[#61dca3] leading-none">
                         5+
@@ -72,10 +65,8 @@ const AboutMe: FC = () => {
                     </span>
                 </div>
             </div>
-            {/* FIN CONTADORES */}
           </div>
           
-          {/* Columna Derecha: Espacio Libre (50% de ancho en escritorio) */}
           <div 
             className="w-full lg:w-1/2 flex items-center justify-center min-h-[400px]"
           >
@@ -91,11 +82,14 @@ const AboutMe: FC = () => {
               <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#61dca3] mb-1">ID: KLIBEL_ROMERO</h3>
               <p className="text-xs sm:text-sm text-gray-400">// ROL: FRONTEND_DEV</p>
 
-              {/* Zona de la Foto o Avatar */}
-              <div className="flex justify-center relative z-10 transition-all shadow-md hover:scale-[1.15] duration-500"> {/* 🔑 AGREGAR relative z-10 AQUÍ */}
-                <img 
+              {/* Zona de la Foto o Avatar: OPTIMIZACIÓN APLICADA */}
+              <div className="flex justify-center relative z-10 transition-all shadow-md hover:scale-[1.15] duration-500">
+                <Image 
                   src="/klibel.png" 
-                  alt="Avatar" 
+                  alt="Avatar de Klibel Romero" 
+                  width={120} // Asume 120px, ajusta si es necesario
+                  height={120} // Asume 120px, ajusta si es necesario
+                  priority // <-- ¡CRÍTICO para el LCP!
                   className="w-30 h-30 my-4 rounded-full border-2 border-[#61dca3] object-cover" 
                 />
               </div>
@@ -106,27 +100,23 @@ const AboutMe: FC = () => {
                     <span className="text-[#61dca3]">STATUS:</span> ONLINE
                 </p>
                 
-                {/* NÚCLEO Y LÓGICA */}
                 <p className="text-xs text-gray-200 mb-1">
                     <span className="text-[#61dca3]">CORE:</span> REACT / JS / TS
                 </p>
 
-                {/* INTERFACES Y ESTILO */}
                 <p className="text-xs text-gray-200 mb-1">
                     <span className="text-[#61dca3]">STYLE:</span> TAILWIND / HTML / CSS / BOOTSTRAP
                 </p>
 
-                {/* PLATAFORMAS Y HERRAMIENTAS */}
                 <p className="text-xs text-gray-200">
                     <span className="text-[#61dca3]">PLATFORMS:</span> RN / GIT / EXPO / AI
                 </p>
               </div>
             
-              {/* Efecto de Escaneo (overlay) */}
               <div className="absolute inset-0 pointer-events-none transform animate-pulse opacity-20" 
                 style={{ 
                   background: 'linear-gradient(to top, transparent 0%, rgba(97, 220, 163, 0.5) 50%, transparent 100%)',
-                  zIndex: 0, // Aseguramos que el efecto tenga un z-index bajo
+                  zIndex: 0,
                 }}
               />
             </div>

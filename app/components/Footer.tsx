@@ -1,54 +1,49 @@
 "use client";
 
-import { FC } from 'react';
-// Importamos los íconos de redes sociales adicionales
+import { FC, memo } from 'react';
 import { Mail, Linkedin, Github, Phone, Instagram, Send } from 'lucide-react';
 
-// --- DATOS PERSONALES DE KLIBEL (¡IMPORTANTE: REEMPLAZA CON TU INFO!) ---
 const CONTACT_INFO = {
     email: "klibel.a.romeo@gmail.com", 
     linkedin: "https://www.linkedin.com/in/klibel-romero-418b01305/", 
     github: "https://github.com/klibel", 
-    tiktok: "https://www.tiktok.com/@klibel_romero", // Nueva red
-    instagram: "https://www.instagram.com/klibel.romero/", // Nueva red
+    tiktok: "https://www.tiktok.com/@klibel_romero", 
+    instagram: "https://www.instagram.com/klibel.romero/", 
     phone: "+58 412 104 0377",
     location: "Punto Fijo, Falcón, Venezuela"
 };
 
-const Footer: FC = () => {
-    // Definición de enlaces para mapeo simple
-    const socialLinks = [
-        { 
-            name: "LinkedIn", 
-            href: CONTACT_INFO.linkedin, 
-            Icon: Linkedin, 
-            color: "hover:text-blue-400" 
-        },
-        { 
-            name: "GitHub", 
-            href: CONTACT_INFO.github, 
-            Icon: Github, 
-            color: "hover:text-white" 
-        },
-        { 
-            name: "Instagram", 
-            href: CONTACT_INFO.instagram, 
-            Icon: Instagram, 
-            color: "hover:text-pink-500" 
-        },
-        { 
-            name: "TikTok", 
-            href: CONTACT_INFO.tiktok, 
-            Icon: Send, // Usaremos Send o un ícono de Lucide que se asemeje
-            color: "hover:text-sky-400" 
-        },
-    ];
+const socialLinks = [
+    { 
+        name: "LinkedIn", 
+        href: CONTACT_INFO.linkedin, 
+        Icon: Linkedin, 
+        color: "hover:text-blue-400" 
+    },
+    { 
+        name: "GitHub", 
+        href: CONTACT_INFO.github, 
+        Icon: Github, 
+        color: "hover:text-white" 
+    },
+    { 
+        name: "Instagram", 
+        href: CONTACT_INFO.instagram, 
+        Icon: Instagram, 
+        color: "hover:text-pink-500" 
+    },
+    { 
+        name: "TikTok", 
+        href: CONTACT_INFO.tiktok, 
+        Icon: Send, 
+        color: "hover:text-sky-400" 
+    },
+];
 
+const FooterComponent: FC = () => {
     return (
         <footer className="w-full bg-gray-950 border-t border-[#61dca3]/50 text-white font-inter py-8 px-5">
             <div className="max-w-7xl mx-auto">
-
-                {/* --- SECCIÓN PRINCIPAL (LOGO, CONTACTO, REDES) --- */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-3 pb-10 border-b border-gray-800">
                     
                     {/* Columna 1: Logo y Slogan */}
@@ -68,7 +63,7 @@ const Footer: FC = () => {
                         </p>
                     </div>
 
-                    {/* Columna 2: Llamada a la Acción (Visible en móvil, compactada) */}
+                    {/* Columna 2: Llamada a la Acción */}
                     <div className="md:col-span-1 space-y-4 flex flex-col items-center md:items-start">
                         <h3 className="text-base lg:text-lg font-extrabold text-[#61dca3] tracking-tight mb-4">
                             Hablemos de tu Proyecto
@@ -113,7 +108,7 @@ const Footer: FC = () => {
                         </p>
                     </div>
 
-                    {/* Columna 4: Redes Sociales (Mapeo de la nueva lista) */}
+                    {/* Columna 4: Redes Sociales */}
                     <div className="md:col-span-1 space-y-3 w-full flex flex-col items-center md:items-start">
                         <h3 className="text-base lg:text-lg font-semibold text-white border-b border-gray-700 w-max pb-1 mb-2">
                             Sígueme en Redes
@@ -146,5 +141,8 @@ const Footer: FC = () => {
         </footer>
     );
 };
+
+// ⚡️ Optimización: Uso de memo para evitar re-renderizados innecesarios.
+const Footer = memo(FooterComponent);
 
 export default Footer;

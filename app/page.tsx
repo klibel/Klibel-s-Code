@@ -1,40 +1,61 @@
 "use client";
 
-// 1. Importa 'dynamic' de Next.js
 import dynamic from 'next/dynamic';
-
-// Componentes que NO son sospechosos (MyTechnologies, ProjectCard, Footer)
-import AboutMe from './components/AboutMe';
-import ProjectCard from './components/MyProjects';
-import Footer from './components/Footer';
-import MyTechnologies from './components/MyTechnologies'; 
+import React from 'react';
 
 // ----------------------------------------------------
-// 2. Importaciones Dinámicas (Ignorando el Servidor)
+// 1. Carga Dinámica de Componentes de Cabecera (Interactivos/Pesados)
 // ----------------------------------------------------
 
-// Componente sospechoso #1
+// Componente 1: Glitch / Efectos visuales (SSR deshabilitado por su naturaleza interactiva)
 const DynamicLetterGlitch = dynamic(
   () => import('./components/LetterGlitch'),
   { 
-    ssr: false, // <-- ¡Esto detiene la renderización en el servidor!
-    loading: () => <div>Loading...</div>, // Opcional
+    ssr: false, 
+    // Usamos un div vacío para evitar un desfase de diseño (layout shift)
+    loading: () => <div className="min-h-[50vh] w-full" />, 
   }
 );
 
-// Componente sospechoso #2
+// Componente 2: Wrapper principal / Router (SSR deshabilitado)
 const DynamicRouterWrapper = dynamic(
   () => import('./components/RouterWrapper'), 
   { ssr: false } 
 );
 
 // ----------------------------------------------------
-// 3. Usa los componentes dinámicos en el JSX
+// 2. Carga Dinámica de Componentes Secundarios (Sección Abajo)
 // ----------------------------------------------------
+
+// Componente 3: Sobre Mí (Se carga cuando la página principal ya es interactiva)
+const DynamicAboutMe = dynamic(() => import('./components/AboutMe'), {
+    loading: () => <div className="h-64 bg-gray-900/50 animate-pulse w-full"></div>,
+});
+
+// Componente 4: Tecnologías (Carga diferida)
+const DynamicMyTechnologies = dynamic(() => import('./components/MyTechnologies'), {
+    loading: () => <div className="h-96 bg-gray-800/50 animate-pulse w-full"></div>,
+});
+
+// Componente 5: Proyectos (Carga diferida)
+const DynamicProjectCard = dynamic(() => import('./components/MyProjects'), {
+    loading: () => <div className="h-[700px] bg-gray-900/50 animate-pulse w-full"></div>,
+});
+
+// Componente 6: Footer (El menos prioritario)
+const DynamicFooter = dynamic(() => import('./components/Footer'), {
+    loading: () => <div className="h-40 bg-gray-950/50 w-full"></div>,
+});
+
+// ----------------------------------------------------
+// 3. HOME PRINCIPAL
+// ----------------------------------------------------
+
 export default function Home() {
   return (
     <main id='inicio' className="flex min-h-screen flex-col items-center justify-between">
-      {/* Usamos el componente dinámico */}
+      
+      {/* ⚡️ Contenido ATF (Above The Fold) - Prioridad Máxima */}
       <DynamicLetterGlitch
         glitchSpeed={50}
         centerVignette={true}
@@ -42,24 +63,27 @@ export default function Home() {
         smooth={true}
       />
       
-      {/* Usamos el componente dinámico */}
       <DynamicRouterWrapper 
         logoAlt='Icon'
         logoSrc='/Icon.png' 
       />
       
-      {/* El resto de componentes... */}
+      {/* ⚙️ Contenido Debajo del Fold - Carga Diferida */}
+      
       <section className='w-full' id='sobreMi'>
-        <AboutMe/>
+        <DynamicAboutMe/>
       </section>
+      
       <section className='w-full' id='tecnologias'>
-        <MyTechnologies/>
+        <DynamicMyTechnologies/>
       </section>
+      
       <section className='w-full' id='proyectos'>
-        <ProjectCard/>
+        <DynamicProjectCard/>
       </section>
+      
       <section className='w-full' id='contacto'>
-        <Footer/>
+        <DynamicFooter/>
       </section>
     </main>
   );

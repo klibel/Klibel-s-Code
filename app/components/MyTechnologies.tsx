@@ -1,42 +1,23 @@
 "use client";
 
-import {
-    useEffect, useId, useLayoutEffect, useRef, useCallback, useMemo, useState, memo,
-    FC, ReactNode, RefObject, DependencyList
+import React, { 
+    useRef, useEffect, useCallback, useMemo, useState, memo, FC, 
+    ReactNode, RefObject, DependencyList, useId, useLayoutEffect 
 } from 'react';
-import React from 'react';
 import {
-    SiReact,
-    SiTailwindcss,
-    SiBootstrap,
-    SiGit,
-    SiGithub,
-    SiVscodium,
-    SiCanva,
-    SiJavascript,
-    SiTypescript,
-    SiHtml5,
-    SiCss3,
-    SiVite
+    SiReact, SiTailwindcss, SiBootstrap, SiGit, SiGithub, SiVscodium, 
+    SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss3, SiVite
 } from "react-icons/si";
 import { Phone, Zap } from "lucide-react";
 
+
 // --- UTILITY FUNCTIONS ---
 
-/**
- * Convierte un color hexadecimal a formato RGBA.
- * @param {string} hex - Color hexadecimal (#RRGGBB o #RGB).
- * @param {number} [alpha=1] - Opacidad (0 a 1).
- * @returns {string} Color en formato rgba().
- */
 function hexToRgba(hex: string, alpha: number = 1): string {
     if (!hex) return `rgba(0,0,0,${alpha})`;
     let h = hex.replace('#', '');
     if (h.length === 3) {
-        h = h
-            .split('')
-            .map(c => c + c)
-            .join('');
+        h = h.split('').map(c => c + c).join('');
     }
     const int = parseInt(h, 16);
     const r = (int >> 16) & 255;
@@ -47,16 +28,6 @@ function hexToRgba(hex: string, alpha: number = 1): string {
 
 const toCssLength = (value: string | number | undefined | null) => (typeof value === 'number' ? `${value}px` : (value ?? undefined));
 const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(' ');
-
-// --- SKILLS DATA ICONS ---
-// Íconos SVG para librerías específicas (React, Vscode, etc.)
-const ReactIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.332 7.74l-3.303 3.303a1.5 1.5 0 01-2.121 0l-1.954-1.954a.5.5 0 00-.707 0l-1.06 1.06a.5.5 0 000 .707l2.66 2.66a2.5 2.5 0 003.535 0l4.01-4.01a.5.5 0 000-.707l-1.06-1.06a.5.5 0 00-.707 0z" fill="#61DAFB"/></svg>;
-const VscodeIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path fill="#24A1E6" d="M22.84 5.25L11.5 1.03l-10.2 4.22L12 9.47zm-11.34 1.3L.75 6.64v10.72l11.41 5.02L23.5 17.36V6.64l-11.99.36z"/><path fill="#007ACC" d="M12 9.47l-10.59 4.3v2.85l10.59 4.67 11.08-4.87V13.7l-11.08-4.23z"/><path fill="#0078D4" d="M12 9.47l-4.5 2.2V13.7l4.5 2.2 4.5-2.2V11.67l-4.5-2.2z"/></svg>;
-const TailwindIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path d="M12.0003 4.98188C14.0722 4.98188 15.3411 6.55437 15.7417 8.04374C16.1423 9.53312 15.9392 11.2393 15.3411 12.6393C14.743 14.0393 13.7448 15.1378 12.0003 15.1378C9.92837 15.1378 8.65943 13.5653 8.25883 12.0759C7.85822 10.5866 8.06132 8.88034 8.65943 7.48034C9.25754 6.08034 10.2557 4.98188 12.0003 4.98188ZM12.0003 17.1353C14.0722 17.1353 15.3411 18.7078 15.7417 20.1972C16.1423 21.6866 15.9392 23.3928 15.3411 24.7928C14.743 26.1928 13.7448 27.2912 12.0003 27.2912C9.92837 27.2912 8.65943 25.7187 8.25883 24.2293C7.85822 22.7399 8.06132 21.0337 8.65943 19.6337C9.25754 18.2337 10.2557 17.1353 12.0003 17.1353Z" fill="#06B6D4" transform="translate(-.5 -4.5)"/></svg>;
-const BootstrapIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path fill="#7952B3" d="M12.0007 0C5.37257 0 0 5.37257 0 12.0007C0 18.6288 5.37257 24.0014 12.0007 24.0014C18.6288 24.0014 24.0014 18.6288 24.0014 12.0007C24.0014 5.37257 18.6288 0 12.0007 0ZM15.0007 18.0014H9.00073V16.0014H15.0007V18.0014ZM15.0007 14.0014H9.00073V12.0014H15.0007V14.0014ZM15.0007 10.0014H9.00073V8.00137H15.0007V10.0014Z"/></svg>;
-const GitIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path fill="#F05032" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM15 15.75L12 12.75 9 15.75H6V8.25h3l3-3 3 3h3v7.5h-3zM12 4.25L7.5 8.75V15.25L12 19.75l4.5-4.5V8.75L12 4.25zM12 17.15L8.85 14V9.85L12 6.7l3.15 3.15V14L12 17.15z"/></svg>;
-const GithubIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path fill="#FFFFFF" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.803 8.207 11.385.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.087-.744.084-.692.084-.692 1.205.086 1.838 1.233 1.838 1.233 1.07 1.835 2.809 1.305 3.493.998.108-.776.417-1.305.761-1.605-2.676-.303-5.492-1.338-5.492-5.923 0-1.31.465-2.38 1.235-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.046.138 3.003.404 2.292-1.552 3.3-1.23 3.3-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.596-2.819 5.617-5.497 5.918.42.36.791 1.103.791 2.223v3.293c0 .319.192.694.8.576C20.562 21.808 24 17.309 24 12c0-6.627-5.373-12-12-12z"/></svg>;
-const CanvaIcon = <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[30px] w-auto"><path fill="#00C4CC" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.28 17.15c-3.18 0-5.77-2.5-5.77-5.58s2.59-5.58 5.77-5.58c1.37 0 2.59.48 3.59 1.48l-1.37 1.37c-.66-.64-1.53-.98-2.22-.98-2.12 0-3.83 1.7-3.83 3.69s1.71 3.69 3.83 3.69c.9 0 1.63-.3 2.22-.98l1.37 1.37c-.83.84-2.12 1.48-3.59 1.48z"/></svg>;
 
 
 // --- SKILLS DATA LISTS ---
@@ -104,7 +75,8 @@ const ALL_SKILLS: GridSkillItem[] = [
   { name: "Vite", icon: <SiVite size={30} />, color: "#646CFF", description: "Bundler ultrarrápido para React y TypeScript." },
 
   { name: "Git", icon: <SiGit size={30} color="#F05032" />, color: "#F05032", description: "Control de versiones distribuido, manejo avanzado de ramas y fusiones." },
-  { name: "GitHub", icon: <SiGithub size={30} color="#FFFFFF" />, color: "#FFFFFF", textColor: "text-black", description: "Plataforma de colaboración, pull requests, revisiones de código y CI/CD." },
+  // Corregido: SiGithub ya es blanco, no necesita color="" si no se pasa explícitamente.
+  { name: "GitHub", icon: <SiGithub size={30} color="#FFFFFF" />, color: "#FFFFFF", textColor: "text-black", description: "Plataforma de colaboración, pull requests, revisiones de código y CI/CD." }, 
   { name: "VS Code", icon: <SiVscodium size={30} color="#007ACC" />, color: "#007ACC", description: "Uso avanzado del editor, atajos, extensiones y configuración de entorno." },
 
   { name: "Canva", icon: <SiCanva size={30} color="#00C4CC" />, color: "#00C4CC", description: "Creación de prototipos visuales rápidos, recursos gráficos y diseño UI/UX básico." },
@@ -125,9 +97,9 @@ interface ElectricBorderProps {
     style?: React.CSSProperties;
 }
 
-const ElectricBorder: FC<ElectricBorderProps> = ({ 
+const ElectricBorder: FC<ElectricBorderProps> = memo(({ 
     children, 
-    color = '#2DD4BF', // Default Teal
+    color = '#2DD4BF', 
     speed = 1, 
     chaos = 1, 
     thickness = 2, 
@@ -143,7 +115,7 @@ const ElectricBorder: FC<ElectricBorderProps> = ({
     const updateAnim = useCallback(() => {
         const svg = svgRef.current;
         const host = rootRef.current;
-        if (!svg || !host) return;
+        if (!svg || !host || typeof window === 'undefined') return;
 
         if (strokeRef.current) {
             strokeRef.current.style.filter = `url(#${filterId})`;
@@ -185,7 +157,7 @@ const ElectricBorder: FC<ElectricBorderProps> = ({
                     try {
                         (a as any).beginElement();
                     } catch {
-                        // Suppress console warning
+                        // Ignore console warning
                     }
                 }
             });
@@ -193,14 +165,18 @@ const ElectricBorder: FC<ElectricBorderProps> = ({
     }, [chaos, filterId, speed]);
 
     useEffect(() => {
-        updateAnim();
+        if (typeof window !== 'undefined') {
+            updateAnim();
+        }
     }, [updateAnim]);
 
     useLayoutEffect(() => {
-        if (!rootRef.current) return;
+        if (!rootRef.current || typeof window === 'undefined' || !window.ResizeObserver) return;
+        
         const ro = new ResizeObserver(() => updateAnim());
         ro.observe(rootRef.current);
         updateAnim();
+        
         return () => ro.disconnect();
     }, [updateAnim]);
 
@@ -298,77 +274,22 @@ const ElectricBorder: FC<ElectricBorderProps> = ({
             </div>
         </div>
     );
-};
+}, (prev, next) => {
+    return prev.children === next.children && 
+           prev.color === next.color && 
+           prev.className === next.className &&
+           prev.thickness === next.thickness;
+});
+
+ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT ---
+// --- LOGO LOOP COMPONENT HOOKS (Aislados) ---
 
 const ANIMATION_CONFIG = {
     SMOOTH_TAU: 0.25,
     MIN_COPIES: 2,
     COPY_HEADROOM: 2
-};
-
-const useResizeObserverHook = (callback: () => void, elements: RefObject<HTMLElement | null>[], dependencies: DependencyList) => {
-    useEffect(() => {
-        if (typeof window === 'undefined' || !window.ResizeObserver) {
-            const handleResize = () => callback();
-            window.addEventListener('resize', handleResize);
-            callback();
-            return () => window.removeEventListener('resize', handleResize);
-        }
-
-        const observers: ResizeObserver[] = elements.map(ref => {
-            if (!ref.current) return null;
-            const observer = new ResizeObserver(callback);
-            observer.observe(ref.current);
-            return observer;
-        }).filter((obs): obs is ResizeObserver => obs !== null);
-
-        callback();
-
-        return () => {
-            observers.forEach(observer => observer?.disconnect());
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, dependencies);
-};
-
-const useImageLoader = (seqRef: RefObject<HTMLElement | null>, onLoad: () => void, dependencies: DependencyList) => {
-    useEffect(() => {
-        const images = seqRef.current?.querySelectorAll('img') ?? [];
-
-        if (images.length === 0) {
-            onLoad();
-            return;
-        }
-
-        let remainingImages = images.length;
-        const handleImageLoad = () => {
-            remainingImages -= 1;
-            if (remainingImages === 0) {
-                onLoad();
-            }
-        };
-
-        images.forEach(img => {
-            const htmlImg = img as HTMLImageElement;
-            if (htmlImg.complete) {
-                handleImageLoad();
-            } else {
-                htmlImg.addEventListener('load', handleImageLoad, { once: true });
-                htmlImg.addEventListener('error', handleImageLoad, { once: true });
-            }
-        });
-
-        return () => {
-            images.forEach(img => {
-                img.removeEventListener('load', handleImageLoad);
-                img.removeEventListener('error', handleImageLoad);
-            });
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, dependencies);
 };
 
 const useAnimationLoop = (
@@ -440,6 +361,7 @@ const useAnimationLoop = (
     }, [targetVelocity, seqWidth, isHovered, pauseOnHover, trackRef]);
 };
 
+// --- LOGO LOOP COMPONENT ---
 
 interface LogoLoopProps {
     logos: LogoLoopItem[];
@@ -499,8 +421,24 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             }
         }, []);
 
-        useResizeObserverHook(updateDimensions, [containerRef, seqRef], [logos, gap, logoHeight]);
-        useImageLoader(seqRef, updateDimensions, [logos, gap, logoHeight]);
+        useEffect(() => {
+            updateDimensions();
+            if (typeof window === 'undefined') return;
+
+            const handleResize = () => updateDimensions();
+            window.addEventListener('resize', handleResize);
+            
+            // Usamos ResizeObserver para detectar cambios internos en la lista (logos, padding)
+            const ro = new ResizeObserver(updateDimensions);
+            if(containerRef.current) ro.observe(containerRef.current);
+            if(seqRef.current) ro.observe(seqRef.current);
+
+            return () => {
+                window.removeEventListener('resize', handleResize);
+                ro.disconnect();
+            };
+        }, [updateDimensions, logos, gap, logoHeight]);
+        
         useAnimationLoop(trackRef, targetVelocity, seqWidth, isHovered, pauseOnHover);
 
         const cssVariables = useMemo(
@@ -554,13 +492,12 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 return (
                     <li
                         className={cx(
-                            'flex-none mr-(--logoloop-gap) text-[length(--logoloop-logoHeight)] leading-1',
-                            'p-2 flex items-center justify-center rounded-xl backdrop-blur-sm', // Más redondeado
+                            'flex-none mx-6 leading-1',
+                            'p-3 flex items-center justify-center rounded-xl backdrop-blur-sm', 
                             scaleOnHover && 'overflow-visible group/item'
                         )}
                         key={key}
                         role="listitem"
-                        // Usamos un fondo más sutil para los logos
                         style={{ background: hexToRgba(item.color, 0.1), border: `1px solid ${hexToRgba(item.color, 0.2)}` }} 
                     >
                         {content}
@@ -640,7 +577,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
 LogoLoop.displayName = 'LogoLoop';
 
 
-// --- SKILL CARD COMPONENT ---
+// --- SKILL CARD COMPONENT (Memoizado) ---
 
 interface SkillCardProps {
     name: string;
@@ -650,10 +587,10 @@ interface SkillCardProps {
     textColor?: string;
 }
 
-const SkillCard: FC<SkillCardProps> = ({ name, icon, description, color, textColor = '#ffffff' }) => (
+const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
     <ElectricBorder 
         color={color} 
-        className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400" // Ajuste hover
+        className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400"
     >
         <div 
             className="p-4 h-full min-h-36 flex flex-col items-start rounded-xl bg-slate-800/60 hover:bg-slate-700/70 transition-colors backdrop-blur-sm"
@@ -664,22 +601,24 @@ const SkillCard: FC<SkillCardProps> = ({ name, icon, description, color, textCol
                     className="p-3 mr-3 rounded-full" 
                     style={{ background: hexToRgba(color, 0.2), color: color }}
                 >
-                    {typeof icon === 'string' ? <span className="text-xl font-mono">{icon}</span> : icon}
+                    {icon}
                 </div>
                 <h3 className="text-sm font-bold uppercase" style={{ color: color }}>{name}</h3>
             </div>
             <p className="text-xs text-slate-300 flex-row">{description}</p>
         </div>
     </ElectricBorder>
-);
+));
+
+SkillCard.displayName = 'SkillCard';
 
 
-// --- MAIN APP COMPONENT (UNIFICADO) ---
+// --- MAIN APP COMPONENT ---
 
 const MisTecnologias: FC = () => {
 
     return (
-        <div className="min-h-screen bg-black text-white font-inter p-4 sm:p-8 w-full">
+        <div className="min-h-screen bg-black text-white font-inter p-4 sm:p-8 w-full" id="tecnologias">
             
             <div className="max-w-7xl mx-auto mb-10 text-center pt-8">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-[#61dca3] mb-4">
@@ -690,36 +629,32 @@ const MisTecnologias: FC = () => {
                 </p>
             </div>
 
-            {/* Carrusel de Logos (LogoLoop) - Habilidades Principales */}
-            <div className="mb-14 mx-auto border-y border-[#61dca3]/50 py-6">
+            <div className="mb-12 mx-auto border-y border-[#61dca3]/50 py-3">
                 <LogoLoop 
                     logos={LOOP_SKILLS} 
                     speed={100}
-                    direction="right" // Un toque distinto en la dirección
+                    direction="right"
                     logoHeight={32}
                     gap={40}
-                    fadeOutColor="#000000" // Fondo negro para el fade-out
+                    fadeOutColor="#000000"
                 />
             </div>
 
-            {/* Grilla de Habilidades (Skill Cards) - Todos Juntos */}
             <div className="max-w-7xl mx-auto px-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {ALL_SKILLS.map((skill, index) => (
-                        <div key={index} className="flex justify-center">
-                            <SkillCard
-                                name={skill.name}
-                                icon={skill.icon}
-                                description={skill.description}
-                                color={skill.color}
-                                textColor={skill.textColor}
-                            />
+                        <div key={skill.name} className="flex justify-center">
+                            <SkillCard 
+                                name={skill.name} 
+                                icon={skill.icon} 
+                                description={skill.description} 
+                                color={skill.color} 
+                                textColor={skill.textColor} 
+                            /> 
                         </div>
                     ))}
                 </div>
             </div>
-            
-            <div className="h-20" /> {/* Espacio al final */}
         </div>
     );
 };
