@@ -84,7 +84,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT (Mismo código, pero más eficiente al animar) ---
+// --- ELECTRIC BORDER COMPONENT (Optimizaciones previas mantenidas) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -116,7 +116,6 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     const dur = Math.max(0.001, 6 / (speed || 1));
     const scale = 30 * (chaos || 1);
 
-    // 💡 OPTIMIZACIÓN: Solo 'willChange: filter' en el borde con filtro.
     const strokeStyle = useMemo(() => ({
         ...inheritRadius,
         borderWidth: thickness,
@@ -487,7 +486,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
 LogoLoop.displayName = 'LogoLoop';
 
 
-// --- SKILL CARD COMPONENT (Memoizado y Optimizado) ---
+// --- SKILL CARD COMPONENT (Memoizado) ---
 
 interface SkillCardProps {
     name: string;
@@ -500,8 +499,8 @@ interface SkillCardProps {
 const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
     <ElectricBorder 
         color={color} 
-        // 💡 OPTIMIZACIÓN: Transición más corta (duration-300) y solo en el transform para más fluidez.
-        className="h-full w-full rounded-xl transition-transform hover:scale-[1.03] duration-300"
+        // Se mantiene duration-300 para el hover, que es rápido y fluido
+        className="h-full w-full rounded-xl transition-transform hover:scale-[1.03] duration-300" 
     >
         <div 
             className="p-4 h-full min-h-36 flex flex-col items-start rounded-xl bg-slate-800/60 hover:bg-slate-700/70 transition-colors backdrop-blur-sm"
@@ -524,7 +523,7 @@ const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, te
 SkillCard.displayName = 'SkillCard';
 
 
-// --- MAIN APP COMPONENT (Con Intersection Observer y Tiempos Optimizados) ---
+// --- MAIN APP COMPONENT (Con Intersection Observer y Tiempos Ajustados) ---
 
 const MisTecnologias: FC = () => {
     // 1. Estado para saber si la sección está en la vista
@@ -532,8 +531,8 @@ const MisTecnologias: FC = () => {
     // 2. Referencia al contenedor de las tarjetas
     const cardsContainerRef = useRef<HTMLDivElement>(null);
     
-    // 💡 OPTIMIZACIÓN 1: Reducir el retraso base de 50ms a 30ms para un escalonamiento más rápido.
-    const baseDelayMs = 30; 
+    // 💡 AJUSTE 1: Aumentar el retraso base para que el escalonamiento sea más tranquilo (60ms)
+    const baseDelayMs = 60; 
 
     // 3. Implementación del Intersection Observer
     useLayoutEffect(() => {
@@ -605,8 +604,8 @@ const MisTecnologias: FC = () => {
                         return (
                             <div 
                                 key={skill.name} 
-                                // 💡 OPTIMIZACIÓN 2: Usar duration-300 (más rápido que 400).
-                                className={`flex justify-center transition-all duration-300 ${animationClasses}`}
+                                // 💡 AJUSTE 2: Usar duration-500 (más lento que 300 o 400).
+                                className={`flex justify-center transition-all duration-500 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >
                                 <SkillCard 
