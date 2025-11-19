@@ -1,8 +1,8 @@
 "use client";
 
 import React, { 
-    useRef, useEffect, useCallback, useMemo, useState, memo, FC, 
-    ReactNode, useId, useLayoutEffect 
+    useRef, useMemo, useState, memo, FC, 
+    ReactNode, useId, useLayoutEffect, useCallback
 } from 'react';
 // Usamos 'styled-jsx/css' para inyectar los keyframes de forma limpia en Next.js
 import css from 'styled-jsx/css'; 
@@ -32,7 +32,7 @@ const toCssLength = (value: string | number | undefined | null) => (typeof value
 const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(' ');
 
 
-// --- SKILLS DATA LISTS ---
+// --- SKILLS DATA LISTS (sin cambios) ---
 
 interface LogoLoopItem {
     node: ReactNode;
@@ -86,7 +86,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT (OPTIMIZADO) ---
+// --- ELECTRIC BORDER COMPONENT (sin cambios) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -111,9 +111,6 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     const filterId = `turbulent-displace-${rawId}`;
     const rootRef = useRef<HTMLDivElement>(null);
     
-    // 💡 OPTIMIZACIÓN: Se eliminan los hooks de animación pesados (updateAnim, useEffect, useLayoutEffect)
-    // El SVG y los keyframes harán el trabajo pesado.
-
     const inheritRadius = useMemo(() => ({
         borderRadius: style?.borderRadius ?? 'inherit'
     }), [style?.borderRadius]);
@@ -127,7 +124,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
         borderStyle: 'solid',
         borderColor: color,
         filter: `url(#${filterId})`,
-        willChange: 'filter, transform', // 🚀 OPTIMIZACIÓN CRÍTICA: Fuerza la capa de renderizado
+        willChange: 'filter, transform', 
     }), [color, inheritRadius, thickness, filterId]);
 
     const glow1Style = useMemo(() => ({
@@ -160,14 +157,12 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     return (
         <div ref={rootRef} className={'relative isolate ' + (className ?? '')} style={style}>
             <svg
-                // 💡 OPTIMIZACIÓN: Se elimina la ref innecesaria y el JavaScript
                 className="fixed -left-[10000px] -top-[10000px] w-2.5 h-2.5 opacity-[0.001] pointer-events-none"
                 aria-hidden
                 focusable="false"
             >
                 <defs>
                     <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
-                        {/* ⚡️ Animaciones SVG Declarativas (se usa 'dur' calculado) */}
                         <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
                         <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
                             <animate attributeName="dy" values="700; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
@@ -224,7 +219,34 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT (OPTIMIZADO CON CSS NATIVO) ---
+// --- LOGO LOOP COMPONENT (MAX OPTIMIZACIÓN Y TIPADO CORREGIDO) ---
+
+// 💡 CORRECCIÓN DE TIPADO: Usar NodeJS.Timeout si está presente (entorno Node/Next.js).
+// Si no, forzamos el tipo 'any' o 'number' para compatibilidad con el DOM.
+
+const GlobalTimeout = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
+const GlobalClearTimeout = typeof window !== 'undefined' ? window.clearTimeout : clearTimeout;
+
+const throttle = (fn: Function, delay: number) => {
+    let lastTime = 0;
+    // 💡 CORRECCIÓN: Usamos el tipo genérico any para evitar conflictos entre NodeJS.Timeout y number
+    let timeoutId: any = null; 
+    
+    return (...args: any[]) => {
+        const now = Date.now();
+        if (now - lastTime >= delay) {
+            lastTime = now;
+            fn(...args);
+        } else if (!timeoutId) {
+            // Usamos GlobalTimeout para mayor compatibilidad
+            timeoutId = GlobalTimeout(() => { 
+                lastTime = Date.now();
+                timeoutId = null;
+                fn(...args);
+            }, delay - (now - lastTime));
+        }
+    };
+};
 
 interface LogoLoopProps {
     logos: LogoLoopItem[];
@@ -245,7 +267,7 @@ interface LogoLoopProps {
 const LogoLoop: FC<LogoLoopProps> = memo(
     ({
         logos,
-        speed = 120, // Usamos este valor para calcular la duración CSS
+        speed = 120,
         direction = 'left',
         width = '100%',
         logoHeight = 28,
@@ -260,7 +282,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
     }) => {
         const containerRef = useRef<HTMLDivElement>(null);
         const seqRef = useRef<HTMLUListElement>(null);
-        // 💡 OPTIMIZACIÓN: Solo necesitamos el ancho del contenido y el número de copias
+        
         const [fullWidth, setFullWidth] = useState<number>(0);
         const [copyCount, setCopyCount] = useState<number>(2); 
 
@@ -269,35 +291,54 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             const sequenceWidth = seqRef.current?.getBoundingClientRect?.()?.width ?? 0;
 
             if (sequenceWidth > 0) {
-                setFullWidth(sequenceWidth);
-                const copiesNeeded = Math.ceil(containerWidth / sequenceWidth) + 1; // 1 copia de margen
-                setCopyCount(Math.max(2, copiesNeeded));
+                // Si el ancho de la secuencia cambió más de 1px
+                if (Math.abs(sequenceWidth - fullWidth) > 1) { 
+                    setFullWidth(sequenceWidth);
+                }
+                const copiesNeeded = Math.ceil(containerWidth / sequenceWidth) + 1;
+                // Solo actualiza si el número de copias es distinto
+                if (copiesNeeded !== copyCount) { 
+                    setCopyCount(Math.max(2, copiesNeeded));
+                }
             }
-        }, []);
+        }, [fullWidth, copyCount]);
+
+
+        const throttledUpdate = useMemo(() => throttle(updateDimensions, 150), [updateDimensions]);
 
         useLayoutEffect(() => {
-            updateDimensions();
+            // Primer cálculo forzado.
+            updateDimensions(); 
             if (typeof window === 'undefined') return;
 
-            const handleResize = () => updateDimensions();
-            window.addEventListener('resize', handleResize);
+            // 1. ResizeObserver para el Contenedor (para cambiar copyCount)
+            const roContainer = new ResizeObserver(throttledUpdate);
+            if(containerRef.current) roContainer.observe(containerRef.current);
             
-            const ro = new ResizeObserver(updateDimensions);
-            if(containerRef.current) ro.observe(containerRef.current);
-            // Observar el `seqRef` asegura que el ancho se recalcule si cambian los logos o el gap.
-            if(seqRef.current) ro.observe(seqRef.current); 
+            // 2. Observer para la secuencia (para cambiar fullWidth si el contenido cambia)
+            let roSequence: ResizeObserver | null = null;
+            const timeoutId = GlobalTimeout(() => {
+                 if(seqRef.current) {
+                    roSequence = new ResizeObserver(throttledUpdate);
+                    roSequence.observe(seqRef.current);
+                }
+            }, 50);
+
+
+            // 3. Listener de resize de ventana (como fallback)
+            window.addEventListener('resize', throttledUpdate);
 
             return () => {
-                window.removeEventListener('resize', handleResize);
-                ro.disconnect();
+                GlobalClearTimeout(timeoutId);
+                window.removeEventListener('resize', throttledUpdate);
+                roContainer.disconnect();
+                if(roSequence) roSequence.disconnect();
             };
-        }, [updateDimensions, logos, gap, logoHeight]);
-        
-        // ❌ ELIMINADO: useAnimationLoop, isHovered, handleMouseEnter/Leave
+        }, [throttledUpdate]); 
 
-        // 💡 Cálculo de la duración de la animación:
+
+        // 💡 Cálculo de la duración de la animación (sin cambios):
         const animationDuration = useMemo(() => {
-            // Duración = (Ancho total del contenido original / Velocidad deseada)
             return fullWidth > 0 ? fullWidth / Math.abs(speed) : 0;
         }, [fullWidth, speed]);
 
@@ -347,7 +388,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 return (
                     <li
                         className={cx(
-                            // 💡 OPTIMIZACIÓN: Añadimos 'flex-shrink-0' para asegurar el ancho
                             'flex-none mx-6 leading-1 flex-shrink-0', 
                             'p-3 flex items-center justify-center rounded-xl backdrop-blur-sm', 
                             scaleOnHover && 'overflow-visible group/item'
@@ -366,7 +406,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         const logoLists = useMemo(
             () =>
                 Array.from({ length: copyCount }, (_, copyIndex) => (
-                    // 💡 OPTIMIZACIÓN: Usamos 'min-w-max' para que el primer UL defina el ancho
                     <ul
                         className="flex items-center min-w-max" 
                         key={`copy-${copyIndex}`}
@@ -402,7 +441,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             >
                 {fadeOut && (
                     <>
-                        {/* FadeOuts se mantienen igual */}
                         <div
                             aria-hidden
                             className={cx(
@@ -423,7 +461,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 )}
 
                 <div
-                    // 🚀 OPTIMIZACIÓN CRÍTICA: Aplicación de la animación CSS
                     className={cx('flex w-max will-change-transform select-none', 
                                   'motion-reduce:transform-none',
                                   animationDirectionClass, 
@@ -433,7 +470,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                     {logoLists}
                 </div>
 
-                {/* 💡 ESTILOS DE ANIMACIÓN CON styled-jsx/css para Next.js */}
                 <style jsx global>{`
                     @keyframes logoloop-scroll-left {
                         from { transform: translate3d(0, 0, 0); }
@@ -452,7 +488,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                     .group-hover\\:pause:hover {
                         animation-play-state: paused;
                     }
-                    /* Asegurar la capa GPU para la fluidez */
                     .will-change-transform {
                         will-change: transform;
                     }
@@ -476,7 +511,6 @@ interface SkillCardProps {
 }
 
 const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
-    // 💡 OPTIMIZACIÓN: Aplicamos 'will-change: transform' al hover
     <ElectricBorder 
         color={color} 
         className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400 will-change-transform"
@@ -525,9 +559,7 @@ const MisTecnologias: FC = () => {
                     direction="right"
                     logoHeight={32}
                     gap={40}
-                    // Color de fadeout en negro para fondo oscuro
                     fadeOutColor="#000000" 
-                    // Desactivar scaleOnHover si causa lag en dispositivos móviles
                     scaleOnHover={true} 
                 />
             </div>
