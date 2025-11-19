@@ -84,7 +84,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT (Optimizaciones previas mantenidas) ---
+// --- ELECTRIC BORDER COMPONENT (Modificado para Rendimiento) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -99,7 +99,7 @@ interface ElectricBorderProps {
 const ElectricBorder: FC<ElectricBorderProps> = memo(({ 
     children, 
     color = '#2DD4BF', 
-    speed = 1, 
+    speed = 0.2, // 💡 CAMBIO: Velocidad reducida a 0.2 (muy lenta, más fluida)
     chaos = 1, 
     thickness = 2, 
     className, 
@@ -115,15 +115,18 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 
     const dur = Math.max(0.001, 6 / (speed || 1));
     const scale = 30 * (chaos || 1);
+    
+    // Si speed es 0, no aplicamos el filtro SVG para evitar lag de scroll.
+    const isAnimating = speed > 0;
 
     const strokeStyle = useMemo(() => ({
         ...inheritRadius,
         borderWidth: thickness,
         borderStyle: 'solid',
         borderColor: color,
-        filter: `url(#${filterId})`,
-        willChange: 'filter', 
-    }), [color, inheritRadius, thickness, filterId]);
+        filter: isAnimating ? `url(#${filterId})` : 'none', // Desactivar si no hay animación
+        willChange: isAnimating ? 'filter' : 'auto', 
+    }), [color, inheritRadius, thickness, filterId, isAnimating]);
 
     const glow1Style = useMemo(() => ({
         ...inheritRadius,
@@ -154,46 +157,48 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 
     return (
         <div ref={rootRef} className={'relative isolate ' + (className ?? '')} style={style}>
-            <svg
-                className="fixed -left-[10000px] -top-[10000px] w-2.5 h-2.5 opacity-[0.001] pointer-events-none"
-                aria-hidden
-                focusable="false"
-            >
-                <defs>
-                    <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
-                        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
-                        <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                            <animate attributeName="dy" values="700; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                        </feOffset>
+            {isAnimating && ( // Solo renderizar el SVG si la animación está activa
+                <svg
+                    className="fixed -left-[10000px] -top-[10000px] w-2.5 h-2.5 opacity-[0.001] pointer-events-none"
+                    aria-hidden
+                    focusable="false"
+                >
+                    <defs>
+                        <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
+                            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
+                                <animate attributeName="dy" values="700; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
+                            </feOffset>
 
-                        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
-                        <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                            <animate attributeName="dy" values="0; -700" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                        </feOffset>
+                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
+                            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
+                                <animate attributeName="dy" values="0; -700" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
+                            </feOffset>
 
-                        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
-                        <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
-                            <animate attributeName="dx" values="490; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                        </feOffset>
+                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
+                            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
+                                <animate attributeName="dx" values="490; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
+                            </feOffset>
 
-                        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
-                        <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
-                            <animate attributeName="dx" values="0; -490" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                        </feOffset>
+                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
+                            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
+                                <animate attributeName="dx" values="0; -490" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
+                            </feOffset>
 
-                        <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
-                        <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
-                        <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
-                        <feDisplacementMap
-                            in="SourceGraphic"
-                            in2="combinedNoise"
-                            scale={String(scale)}
-                            xChannelSelector="R"
-                            yChannelSelector="B"
-                        />
-                    </filter>
-                </defs>
-            </svg>
+                            <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
+                            <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
+                            <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
+                            <feDisplacementMap
+                                in="SourceGraphic"
+                                in2="combinedNoise"
+                                scale={String(scale)}
+                                xChannelSelector="R"
+                                yChannelSelector="B"
+                            />
+                        </filter>
+                    </defs>
+                </svg>
+            )}
 
             <div className="absolute inset-0 pointer-events-none" style={inheritRadius}>
                 <div className="absolute inset-0 box-border" style={strokeStyle} />
@@ -211,7 +216,9 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     return prev.children === next.children && 
            prev.color === next.color && 
            prev.className === next.className &&
-           prev.thickness === next.thickness;
+           prev.thickness === next.thickness &&
+           prev.speed === next.speed &&
+           prev.chaos === next.chaos;
 });
 
 ElectricBorder.displayName = 'ElectricBorder';
@@ -531,7 +538,7 @@ const MisTecnologias: FC = () => {
     // 2. Referencia al contenedor de las tarjetas
     const cardsContainerRef = useRef<HTMLDivElement>(null);
     
-    // 💡 AJUSTE 1: Aumentar el retraso base para que el escalonamiento sea más tranquilo (60ms)
+    // El retraso se mantiene en 60ms para una aparición escalonada suave.
     const baseDelayMs = 60; 
 
     // 3. Implementación del Intersection Observer
@@ -604,7 +611,7 @@ const MisTecnologias: FC = () => {
                         return (
                             <div 
                                 key={skill.name} 
-                                // 💡 AJUSTE 2: Usar duration-500 (más lento que 300 o 400).
+                                // La duración de la transición se mantiene en 500ms
                                 className={`flex justify-center transition-all duration-500 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >
