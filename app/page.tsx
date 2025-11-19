@@ -18,7 +18,7 @@ const DynamicLetterGlitch = dynamic(
   () => import('./components/LetterGlitch'),
   { 
     ssr: false, // <-- ¡Esto detiene la renderización en el servidor!
-    loading: () => <div>Cargando efecto...</div>, // Opcional
+    loading: () => <div>Loading...</div>, // Opcional
   }
 );
 

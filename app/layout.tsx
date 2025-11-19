@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 // 2. CONSTANTES DE SEO CLAVE
 // ----------------------------------------------------
 // IMPORTANTE: Reemplaza esta URL con el dominio real de tu portafolio cuando lo publiques.
-const baseUrl = "https://www.klibels-code.com"; 
+const baseUrl = "https://klibels-code.vercel.app"; 
 const authorName = "Klibel";
 
 // ----------------------------------------------------
