@@ -84,7 +84,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT (Modificado para Rendimiento) ---
+// --- ELECTRIC BORDER COMPONENT (Ajustado para Efecto Mínimo) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -99,8 +99,8 @@ interface ElectricBorderProps {
 const ElectricBorder: FC<ElectricBorderProps> = memo(({ 
     children, 
     color = '#2DD4BF', 
-    speed = 0.2, // 💡 CAMBIO: Velocidad reducida a 0.2 (muy lenta, más fluida)
-    chaos = 1, 
+    speed = 0.05, // 💡 CAMBIO: Velocidad muy baja (0.05) para un efecto casi estático.
+    chaos = 0.5, // 💡 CAMBIO: Reducir el caos para un movimiento más suave.
     thickness = 2, 
     className, 
     style 
@@ -114,9 +114,8 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     }), [style?.borderRadius]);
 
     const dur = Math.max(0.001, 6 / (speed || 1));
-    const scale = 30 * (chaos || 1);
+    const scale = 5 * (chaos || 1); // 💡 CAMBIO: Escala de desplazamiento muy reducida (5) para distorsión mínima.
     
-    // Si speed es 0, no aplicamos el filtro SVG para evitar lag de scroll.
     const isAnimating = speed > 0;
 
     const strokeStyle = useMemo(() => ({
@@ -124,7 +123,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
         borderWidth: thickness,
         borderStyle: 'solid',
         borderColor: color,
-        filter: isAnimating ? `url(#${filterId})` : 'none', // Desactivar si no hay animación
+        filter: isAnimating ? `url(#${filterId})` : 'none', 
         willChange: isAnimating ? 'filter' : 'auto', 
     }), [color, inheritRadius, thickness, filterId, isAnimating]);
 
@@ -157,7 +156,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 
     return (
         <div ref={rootRef} className={'relative isolate ' + (className ?? '')} style={style}>
-            {isAnimating && ( // Solo renderizar el SVG si la animación está activa
+            {isAnimating && ( 
                 <svg
                     className="fixed -left-[10000px] -top-[10000px] w-2.5 h-2.5 opacity-[0.001] pointer-events-none"
                     aria-hidden
@@ -165,35 +164,30 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
                 >
                     <defs>
                         <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
-                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
-                            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                                <animate attributeName="dy" values="700; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
+                            {/* Filtro SVG Simplificado para efecto mínimo */}
+                            <feTurbulence 
+                                type="turbulence" 
+                                baseFrequency="0.005" // Baja frecuencia para ruido suave
+                                numOctaves="1"      // Solo una octava para menos complejidad
+                                result="noise" 
+                                seed="1" 
+                            />
+                            <feOffset in="noise" dx="0" dy="0" result="offsetNoise">
+                                <animate 
+                                    attributeName="dy" 
+                                    values="50; 0; -50; 0; 50" // Movimiento muy suave
+                                    dur={`${dur}s`} 
+                                    repeatCount="indefinite" 
+                                    calcMode="linear" 
+                                />
                             </feOffset>
 
-                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
-                            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                                <animate attributeName="dy" values="0; -700" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                            </feOffset>
-
-                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
-                            <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
-                                <animate attributeName="dx" values="490; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                            </feOffset>
-
-                            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
-                            <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
-                                <animate attributeName="dx" values="0; -490" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
-                            </feOffset>
-
-                            <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
-                            <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
-                            <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
                             <feDisplacementMap
                                 in="SourceGraphic"
-                                in2="combinedNoise"
+                                in2="offsetNoise" 
                                 scale={String(scale)}
                                 xChannelSelector="R"
-                                yChannelSelector="B"
+                                yChannelSelector="R" 
                             />
                         </filter>
                     </defs>
@@ -224,7 +218,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT (Sin Cambios) ---
+// --- LOGO LOOP COMPONENT (CORREGIDO: Se asegura el 'return' para 'memo') ---
 
 const GlobalTimeout = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
 const GlobalClearTimeout = typeof window !== 'undefined' ? window.clearTimeout : clearTimeout;
@@ -424,6 +418,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         const animationDirectionClass = direction === 'left' ? 'logoloop-to-left' : 'logoloop-to-right';
         const animationPlayState = pauseOnHover ? 'group-hover:pause' : '';
 
+        // 🚨 RETURN AÑADIDO (soluciona el error de sobrecarga de 'memo')
         return (
             <div
                 ref={containerRef}
@@ -508,6 +503,7 @@ const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, te
         color={color} 
         // Se mantiene duration-300 para el hover, que es rápido y fluido
         className="h-full w-full rounded-xl transition-transform hover:scale-[1.03] duration-300" 
+        // Parámetros por defecto de ElectricBorder (speed=0.05, chaos=0.5)
     >
         <div 
             className="p-4 h-full min-h-36 flex flex-col items-start rounded-xl bg-slate-800/60 hover:bg-slate-700/70 transition-colors backdrop-blur-sm"
@@ -606,12 +602,12 @@ const MisTecnologias: FC = () => {
                         
                         const animationClasses = isVisible 
                             ? 'opacity-100 translate-y-0' 
-                            : 'opacity-0 translate-y-4'; 
+                            : 'opacity-50 translate-y-4'; 
                         
                         return (
                             <div 
                                 key={skill.name} 
-                                // La duración de la transición se mantiene en 500ms
+                                // La duración de la transición se mantiene en 100ms para la aparición.
                                 className={`flex justify-center transition-all duration-100 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >

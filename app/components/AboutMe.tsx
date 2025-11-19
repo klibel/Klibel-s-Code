@@ -34,7 +34,7 @@ const AboutMe: FC = () => {
             </h1>
             
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4">
-                Mi pasión por el desarrollo Frontend comenzó hace 3 años. Lo que más me motiva es la capacidad de crear y dar estilo a las interfaces, buscando siempre que el diseño sea tan impactante como funcional.
+                Mi pasión por el desarrollo Frontend comenzó hace 2 años. Lo que más me motiva es la capacidad de crear y dar estilo a las interfaces, buscando siempre que el diseño sea tan impactante como funcional.
             </p>
             
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4">
