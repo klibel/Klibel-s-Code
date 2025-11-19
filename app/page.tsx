@@ -1,36 +1,54 @@
 "use client";
 
+// 1. Importa 'dynamic' de Next.js
 import dynamic from 'next/dynamic';
+
+// Componentes que NO son sospechosos (MyTechnologies, ProjectCard, Footer)
 import AboutMe from './components/AboutMe';
-import LetterGlitch from './components/LetterGlitch';
-import RouterWrapper from './components/RouterWrapper'; 
 import ProjectCard from './components/MyProjects';
 import Footer from './components/Footer';
-
 import MyTechnologies from './components/MyTechnologies'; 
+
+// ----------------------------------------------------
+// 2. Importaciones Dinámicas (Ignorando el Servidor)
+// ----------------------------------------------------
+
+// Componente sospechoso #1
 const DynamicLetterGlitch = dynamic(
   () => import('./components/LetterGlitch'),
   { 
-    ssr: false, // <-- ¡Solución!
-    loading: () => <div className="text-xl">Cargando efecto...</div>, // Opcional: mostrar un estado de carga
+    ssr: false, // <-- ¡Esto detiene la renderización en el servidor!
+    loading: () => <div>Cargando efecto...</div>, // Opcional
   }
 );
 
+// Componente sospechoso #2
+const DynamicRouterWrapper = dynamic(
+  () => import('./components/RouterWrapper'), 
+  { ssr: false } 
+);
+
+// ----------------------------------------------------
+// 3. Usa los componentes dinámicos en el JSX
+// ----------------------------------------------------
 export default function Home() {
   return (
-      <main id='inicio' className="flex min-h-screen flex-col items-center justify-between">
-        {/* 3. Usa el componente dinámico */}
-        <DynamicLetterGlitch
-          glitchSpeed={50}
-          centerVignette={true}
-          outerVignette={false}
-          smooth={true}
-        />
-        <RouterWrapper 
-          logoAlt='Icon'
-          logoSrc='/Icon.png' 
-        />
-        
+    <main id='inicio' className="flex min-h-screen flex-col items-center justify-between">
+      {/* Usamos el componente dinámico */}
+      <DynamicLetterGlitch
+        glitchSpeed={50}
+        centerVignette={true}
+        outerVignette={false}
+        smooth={true}
+      />
+      
+      {/* Usamos el componente dinámico */}
+      <DynamicRouterWrapper 
+        logoAlt='Icon'
+        logoSrc='/Icon.png' 
+      />
+      
+      {/* El resto de componentes... */}
       <section className='w-full' id='sobreMi'>
         <AboutMe/>
       </section>
