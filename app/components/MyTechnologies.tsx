@@ -612,7 +612,7 @@ const MisTecnologias: FC = () => {
                             <div 
                                 key={skill.name} 
                                 // La duración de la transición se mantiene en 500ms
-                                className={`flex justify-center transition-all duration-500 ${animationClasses}`}
+                                className={`flex justify-center transition-all duration-100 ${animationClasses}`}
                                 style={{ transitionDelay: `${delayMs}ms` }}
                             >
                                 <SkillCard 
