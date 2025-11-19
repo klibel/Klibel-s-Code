@@ -87,9 +87,9 @@ export const MyProjects: React.FC = () => {
         <div className="flex justify-center min-h-screen w-full bg-[#080010] overflow-hidden font-sans">
             <div className="absolute inset-0 z-0">
                 <Particles 
-                    particleCount={300}
+                    particleCount={150}
                     particleSpread={15}
-                    speed={0.15}
+                    speed={0.1}
                     particleColors={['#8B5CF6', '#F97316', '#FFFFFF']} 
                     moveParticlesOnHover={true}
                     particleHoverFactor={0.5}

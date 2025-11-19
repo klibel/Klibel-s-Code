@@ -133,7 +133,7 @@ const ModernNav: FC<ModernNavProps> = ({ logoSrc, logoAlt }) => {
         // Fondo móvil oscuro aplicado directamente
         style={{ backgroundColor: NAV_BG_MOBILE }} 
       >
-        <div className="flex flex-col justify-between items-center w-full h-full px-10 pt-20">
+        <div className="flex flex-col justify-evenly items-center w-full h-full px-10">
           {PORTFOLIO_ITEMS.map((item) => {
             const isActive = activeSection === item.href;
             

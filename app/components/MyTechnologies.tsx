@@ -2,8 +2,10 @@
 
 import React, { 
     useRef, useEffect, useCallback, useMemo, useState, memo, FC, 
-    ReactNode, RefObject, DependencyList, useId, useLayoutEffect 
+    ReactNode, useId, useLayoutEffect 
 } from 'react';
+// Usamos 'styled-jsx/css' para inyectar los keyframes de forma limpia en Next.js
+import css from 'styled-jsx/css'; 
 import {
     SiReact, SiTailwindcss, SiBootstrap, SiGit, SiGithub, SiVscodium, 
     SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss3, SiVite
@@ -75,7 +77,6 @@ const ALL_SKILLS: GridSkillItem[] = [
   { name: "Vite", icon: <SiVite size={30} />, color: "#646CFF", description: "Bundler ultrarrápido para React y TypeScript." },
 
   { name: "Git", icon: <SiGit size={30} color="#F05032" />, color: "#F05032", description: "Control de versiones distribuido, manejo avanzado de ramas y fusiones." },
-  // Corregido: SiGithub ya es blanco, no necesita color="" si no se pasa explícitamente.
   { name: "GitHub", icon: <SiGithub size={30} color="#FFFFFF" />, color: "#FFFFFF", textColor: "text-black", description: "Plataforma de colaboración, pull requests, revisiones de código y CI/CD." }, 
   { name: "VS Code", icon: <SiVscodium size={30} color="#007ACC" />, color: "#007ACC", description: "Uso avanzado del editor, atajos, extensiones y configuración de entorno." },
 
@@ -85,7 +86,7 @@ const ALL_SKILLS: GridSkillItem[] = [
 ];
 
 
-// --- ELECTRIC BORDER COMPONENT ---
+// --- ELECTRIC BORDER COMPONENT (OPTIMIZADO) ---
 
 interface ElectricBorderProps {
     children: ReactNode;
@@ -108,88 +109,26 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 }) => {
     const rawId = useId().replace(/[:]/g, '');
     const filterId = `turbulent-displace-${rawId}`;
-    const svgRef = useRef<SVGSVGElement>(null);
     const rootRef = useRef<HTMLDivElement>(null);
-    const strokeRef = useRef<HTMLDivElement>(null);
-
-    const updateAnim = useCallback(() => {
-        const svg = svgRef.current;
-        const host = rootRef.current;
-        if (!svg || !host || typeof window === 'undefined') return;
-
-        if (strokeRef.current) {
-            strokeRef.current.style.filter = `url(#${filterId})`;
-        }
-
-        const width = Math.max(1, Math.round(host.clientWidth || host.getBoundingClientRect().width || 0));
-        const height = Math.max(1, Math.round(host.clientHeight || host.getBoundingClientRect().height || 0));
-
-        const dyAnims = Array.from(svg.querySelectorAll('feOffset > animate[attributeName="dy"]')) as SVGAnimateElement[];
-        if (dyAnims.length >= 2) {
-            dyAnims[0].setAttribute('values', `${height}; 0`);
-            dyAnims[1].setAttribute('values', `0; -${height}`);
-        }
-
-        const dxAnims = Array.from(svg.querySelectorAll('feOffset > animate[attributeName="dx"]')) as SVGAnimateElement[];
-        if (dxAnims.length >= 2) {
-            dxAnims[0].setAttribute('values', `${width}; 0`);
-            dxAnims[1].setAttribute('values', `0; -${width}`);
-        }
-
-        const baseDur = 6;
-        const dur = Math.max(0.001, baseDur / (speed || 1));
-        [...dyAnims, ...dxAnims].forEach(a => a.setAttribute('dur', `${dur}s`));
-
-        const disp = svg.querySelector('feDisplacementMap');
-        if (disp) disp.setAttribute('scale', String(30 * (chaos || 1)));
-
-        const filterEl = svg.querySelector(`#${CSS.escape(filterId)}`);
-        if (filterEl) {
-            filterEl.setAttribute('x', '-200%');
-            filterEl.setAttribute('y', '-200%');
-            filterEl.setAttribute('width', '500%');
-            filterEl.setAttribute('height', '500%');
-        }
-
-        requestAnimationFrame(() => {
-            [...dyAnims, ...dxAnims].forEach(a => {
-                if (a && typeof (a as any).beginElement === 'function') {
-                    try {
-                        (a as any).beginElement();
-                    } catch {
-                        // Ignore console warning
-                    }
-                }
-            });
-        });
-    }, [chaos, filterId, speed]);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            updateAnim();
-        }
-    }, [updateAnim]);
-
-    useLayoutEffect(() => {
-        if (!rootRef.current || typeof window === 'undefined' || !window.ResizeObserver) return;
-        
-        const ro = new ResizeObserver(() => updateAnim());
-        ro.observe(rootRef.current);
-        updateAnim();
-        
-        return () => ro.disconnect();
-    }, [updateAnim]);
+    
+    // 💡 OPTIMIZACIÓN: Se eliminan los hooks de animación pesados (updateAnim, useEffect, useLayoutEffect)
+    // El SVG y los keyframes harán el trabajo pesado.
 
     const inheritRadius = useMemo(() => ({
         borderRadius: style?.borderRadius ?? 'inherit'
     }), [style?.borderRadius]);
 
+    const dur = Math.max(0.001, 6 / (speed || 1));
+    const scale = 30 * (chaos || 1);
+
     const strokeStyle = useMemo(() => ({
         ...inheritRadius,
         borderWidth: thickness,
         borderStyle: 'solid',
-        borderColor: color
-    }), [color, inheritRadius, thickness]);
+        borderColor: color,
+        filter: `url(#${filterId})`,
+        willChange: 'filter, transform', // 🚀 OPTIMIZACIÓN CRÍTICA: Fuerza la capa de renderizado
+    }), [color, inheritRadius, thickness, filterId]);
 
     const glow1Style = useMemo(() => ({
         ...inheritRadius,
@@ -221,31 +160,32 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
     return (
         <div ref={rootRef} className={'relative isolate ' + (className ?? '')} style={style}>
             <svg
-                ref={svgRef}
+                // 💡 OPTIMIZACIÓN: Se elimina la ref innecesaria y el JavaScript
                 className="fixed -left-[10000px] -top-[10000px] w-2.5 h-2.5 opacity-[0.001] pointer-events-none"
                 aria-hidden
                 focusable="false"
             >
                 <defs>
                     <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+                        {/* ⚡️ Animaciones SVG Declarativas (se usa 'dur' calculado) */}
                         <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
                         <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                            <animate attributeName="dy" values="700; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                            <animate attributeName="dy" values="700; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
                         </feOffset>
 
                         <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
                         <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                            <animate attributeName="dy" values="0; -700" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                            <animate attributeName="dy" values="0; -700" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
                         </feOffset>
 
                         <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
                         <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
-                            <animate attributeName="dx" values="490; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                            <animate attributeName="dx" values="490; 0" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
                         </feOffset>
 
                         <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
                         <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
-                            <animate attributeName="dx" values="0; -490" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                            <animate attributeName="dx" values="0; -490" dur={`${dur}s`} repeatCount="indefinite" calcMode="linear" />
                         </feOffset>
 
                         <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
@@ -254,7 +194,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
                         <feDisplacementMap
                             in="SourceGraphic"
                             in2="combinedNoise"
-                            scale="30"
+                            scale={String(scale)}
                             xChannelSelector="R"
                             yChannelSelector="B"
                         />
@@ -263,7 +203,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
             </svg>
 
             <div className="absolute inset-0 pointer-events-none" style={inheritRadius}>
-                <div ref={strokeRef} className="absolute inset-0 box-border" style={strokeStyle} />
+                <div className="absolute inset-0 box-border" style={strokeStyle} />
                 <div className="absolute inset-0 box-border" style={glow1Style} />
                 <div className="absolute inset-0 box-border" style={glow2Style} />
                 <div className="absolute inset-0" style={bgGlowStyle} />
@@ -284,84 +224,7 @@ const ElectricBorder: FC<ElectricBorderProps> = memo(({
 ElectricBorder.displayName = 'ElectricBorder';
 
 
-// --- LOGO LOOP COMPONENT HOOKS (Aislados) ---
-
-const ANIMATION_CONFIG = {
-    SMOOTH_TAU: 0.25,
-    MIN_COPIES: 2,
-    COPY_HEADROOM: 2
-};
-
-const useAnimationLoop = (
-    trackRef: RefObject<HTMLElement | null>, 
-    targetVelocity: number, 
-    seqWidth: number, 
-    isHovered: boolean, 
-    pauseOnHover: boolean
-) => {
-    const rafRef = useRef<number | null>(null);
-    const lastTimestampRef = useRef<number | null>(null);
-    const offsetRef = useRef<number>(0);
-    const velocityRef = useRef<number>(0);
-
-    useEffect(() => {
-        const track = trackRef.current;
-        if (!track || typeof window === 'undefined') return;
-
-        const prefersReduced =
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        if (seqWidth > 0) {
-            offsetRef.current = ((offsetRef.current % seqWidth) + seqWidth) % seqWidth;
-            track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
-        }
-
-        if (prefersReduced) {
-            track.style.transform = 'translate3d(0, 0, 0)';
-            return () => {
-                lastTimestampRef.current = null;
-            };
-        }
-
-        const animate = (timestamp: number) => {
-            if (lastTimestampRef.current === null) {
-                lastTimestampRef.current = timestamp;
-            }
-
-            const deltaTime = Math.max(0, timestamp - lastTimestampRef.current) / 1000;
-            lastTimestampRef.current = timestamp;
-
-            const target = pauseOnHover && isHovered ? 0 : targetVelocity;
-
-            const easingFactor = 1 - Math.exp(-deltaTime / ANIMATION_CONFIG.SMOOTH_TAU);
-            velocityRef.current += (target - velocityRef.current) * easingFactor;
-
-            if (seqWidth > 0) {
-                let nextOffset = offsetRef.current + velocityRef.current * deltaTime;
-                nextOffset = ((nextOffset % seqWidth) + seqWidth) % seqWidth;
-                offsetRef.current = nextOffset;
-
-                const translateX = -offsetRef.current;
-                track.style.transform = `translate3d(${translateX}px, 0, 0)`;
-            }
-
-            rafRef.current = requestAnimationFrame(animate);
-        };
-
-        rafRef.current = requestAnimationFrame(animate);
-
-        return () => {
-            if (rafRef.current !== null) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
-            }
-            lastTimestampRef.current = null;
-        };
-    }, [targetVelocity, seqWidth, isHovered, pauseOnHover, trackRef]);
-};
-
-// --- LOGO LOOP COMPONENT ---
+// --- LOGO LOOP COMPONENT (OPTIMIZADO CON CSS NATIVO) ---
 
 interface LogoLoopProps {
     logos: LogoLoopItem[];
@@ -382,7 +245,7 @@ interface LogoLoopProps {
 const LogoLoop: FC<LogoLoopProps> = memo(
     ({
         logos,
-        speed = 120,
+        speed = 120, // Usamos este valor para calcular la duración CSS
         direction = 'left',
         width = '100%',
         logoHeight = 28,
@@ -396,42 +259,33 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         style
     }) => {
         const containerRef = useRef<HTMLDivElement>(null);
-        const trackRef = useRef<HTMLDivElement>(null);
         const seqRef = useRef<HTMLUListElement>(null);
-
-        const [seqWidth, setSeqWidth] = useState<number>(0);
-        const [copyCount, setCopyCount] = useState<number>(ANIMATION_CONFIG.MIN_COPIES);
-        const [isHovered, setIsHovered] = useState<boolean>(false);
-
-        const targetVelocity = useMemo(() => {
-            const magnitude = Math.abs(speed);
-            const directionMultiplier = direction === 'left' ? 1 : -1;
-            const speedMultiplier = speed < 0 ? -1 : 1;
-            return magnitude * directionMultiplier * speedMultiplier;
-        }, [speed, direction]);
+        // 💡 OPTIMIZACIÓN: Solo necesitamos el ancho del contenido y el número de copias
+        const [fullWidth, setFullWidth] = useState<number>(0);
+        const [copyCount, setCopyCount] = useState<number>(2); 
 
         const updateDimensions = useCallback(() => {
             const containerWidth = containerRef.current?.clientWidth ?? 0;
             const sequenceWidth = seqRef.current?.getBoundingClientRect?.()?.width ?? 0;
 
             if (sequenceWidth > 0) {
-                setSeqWidth(Math.ceil(sequenceWidth));
-                const copiesNeeded = Math.ceil(containerWidth / sequenceWidth) + ANIMATION_CONFIG.COPY_HEADROOM;
-                setCopyCount(Math.max(ANIMATION_CONFIG.MIN_COPIES, copiesNeeded));
+                setFullWidth(sequenceWidth);
+                const copiesNeeded = Math.ceil(containerWidth / sequenceWidth) + 1; // 1 copia de margen
+                setCopyCount(Math.max(2, copiesNeeded));
             }
         }, []);
 
-        useEffect(() => {
+        useLayoutEffect(() => {
             updateDimensions();
             if (typeof window === 'undefined') return;
 
             const handleResize = () => updateDimensions();
             window.addEventListener('resize', handleResize);
             
-            // Usamos ResizeObserver para detectar cambios internos en la lista (logos, padding)
             const ro = new ResizeObserver(updateDimensions);
             if(containerRef.current) ro.observe(containerRef.current);
-            if(seqRef.current) ro.observe(seqRef.current);
+            // Observar el `seqRef` asegura que el ancho se recalcule si cambian los logos o el gap.
+            if(seqRef.current) ro.observe(seqRef.current); 
 
             return () => {
                 window.removeEventListener('resize', handleResize);
@@ -439,15 +293,24 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             };
         }, [updateDimensions, logos, gap, logoHeight]);
         
-        useAnimationLoop(trackRef, targetVelocity, seqWidth, isHovered, pauseOnHover);
+        // ❌ ELIMINADO: useAnimationLoop, isHovered, handleMouseEnter/Leave
+
+        // 💡 Cálculo de la duración de la animación:
+        const animationDuration = useMemo(() => {
+            // Duración = (Ancho total del contenido original / Velocidad deseada)
+            return fullWidth > 0 ? fullWidth / Math.abs(speed) : 0;
+        }, [fullWidth, speed]);
+
 
         const cssVariables = useMemo(
             () => ({
+                '--logoloop-duration': `${animationDuration}s`, 
+                '--logoloop-seqWidth': `${fullWidth}px`, 
                 '--logoloop-gap': `${gap}px`,
                 '--logoloop-logoHeight': `${logoHeight}px`,
                 ...(fadeOutColor && { '--logoloop-fadeColor': fadeOutColor })
             }),
-            [gap, logoHeight, fadeOutColor]
+            [animationDuration, fullWidth, gap, logoHeight, fadeOutColor]
         );
 
         const rootClasses = useMemo(
@@ -463,14 +326,6 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 ),
             [scaleOnHover, className]
         );
-
-        const handleMouseEnter = useCallback(() => {
-            if (pauseOnHover) setIsHovered(true);
-        }, [pauseOnHover]);
-
-        const handleMouseLeave = useCallback(() => {
-            if (pauseOnHover) setIsHovered(false);
-        }, [pauseOnHover]);
 
         const renderLogoItem = useCallback(
             (item: LogoLoopItem, key: string) => { 
@@ -492,7 +347,8 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 return (
                     <li
                         className={cx(
-                            'flex-none mx-6 leading-1',
+                            // 💡 OPTIMIZACIÓN: Añadimos 'flex-shrink-0' para asegurar el ancho
+                            'flex-none mx-6 leading-1 flex-shrink-0', 
                             'p-3 flex items-center justify-center rounded-xl backdrop-blur-sm', 
                             scaleOnHover && 'overflow-visible group/item'
                         )}
@@ -510,8 +366,9 @@ const LogoLoop: FC<LogoLoopProps> = memo(
         const logoLists = useMemo(
             () =>
                 Array.from({ length: copyCount }, (_, copyIndex) => (
+                    // 💡 OPTIMIZACIÓN: Usamos 'min-w-max' para que el primer UL defina el ancho
                     <ul
-                        className="flex items-center"
+                        className="flex items-center min-w-max" 
                         key={`copy-${copyIndex}`}
                         role="list"
                         aria-hidden={copyIndex > 0}
@@ -532,6 +389,9 @@ const LogoLoop: FC<LogoLoopProps> = memo(
             [width, cssVariables, style]
         );
 
+        const animationDirectionClass = direction === 'left' ? 'logoloop-to-left' : 'logoloop-to-right';
+        const animationPlayState = pauseOnHover ? 'group-hover:pause' : '';
+
         return (
             <div
                 ref={containerRef}
@@ -539,15 +399,14 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 style={containerStyle}
                 role="region"
                 aria-label={ariaLabel}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
             >
                 {fadeOut && (
                     <>
+                        {/* FadeOuts se mantienen igual */}
                         <div
                             aria-hidden
                             className={cx(
-                                'pointer-events-none absolute inset-y-0 left-0 z-1',
+                                'pointer-events-none absolute inset-y-0 left-0 z-10',
                                 'w-[clamp(24px,8%,120px)]',
                                 'bg-[linear-gradient(to_right,var(--logoloop-fadeColor,var(--logoloop-fadeColorAuto))_0%,rgba(0,0,0,0)_100%)]'
                             )}
@@ -555,7 +414,7 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                         <div
                             aria-hidden
                             className={cx(
-                                'pointer-events-none absolute inset-y-0 right-0 z-1',
+                                'pointer-events-none absolute inset-y-0 right-0 z-10',
                                 'w-[clamp(24px,8%,120px)]',
                                 'bg-[linear-gradient(to_left,var(--logoloop-fadeColor,var(--logoloop-fadeColorAuto))_0%,rgba(0,0,0,0)_100%)]'
                             )}
@@ -564,11 +423,40 @@ const LogoLoop: FC<LogoLoopProps> = memo(
                 )}
 
                 <div
-                    className={cx('flex w-max will-change-transform select-none', 'motion-reduce:transform-none')}
-                    ref={trackRef}
+                    // 🚀 OPTIMIZACIÓN CRÍTICA: Aplicación de la animación CSS
+                    className={cx('flex w-max will-change-transform select-none', 
+                                  'motion-reduce:transform-none',
+                                  animationDirectionClass, 
+                                  animationPlayState
+                                )}
                 >
                     {logoLists}
                 </div>
+
+                {/* 💡 ESTILOS DE ANIMACIÓN CON styled-jsx/css para Next.js */}
+                <style jsx global>{`
+                    @keyframes logoloop-scroll-left {
+                        from { transform: translate3d(0, 0, 0); }
+                        to { transform: translate3d(calc(-1 * var(--logoloop-seqWidth)), 0, 0); }
+                    }
+                    @keyframes logoloop-scroll-right {
+                        from { transform: translate3d(calc(-1 * var(--logoloop-seqWidth)), 0, 0); }
+                        to { transform: translate3d(0, 0, 0); }
+                    }
+                    .logoloop-to-left {
+                        animation: logoloop-scroll-left var(--logoloop-duration) linear infinite;
+                    }
+                    .logoloop-to-right {
+                        animation: logoloop-scroll-right var(--logoloop-duration) linear infinite;
+                    }
+                    .group-hover\\:pause:hover {
+                        animation-play-state: paused;
+                    }
+                    /* Asegurar la capa GPU para la fluidez */
+                    .will-change-transform {
+                        will-change: transform;
+                    }
+                `}</style>
             </div>
         );
     }
@@ -588,9 +476,10 @@ interface SkillCardProps {
 }
 
 const SkillCard: FC<SkillCardProps> = memo(({ name, icon, description, color, textColor = '#ffffff' }) => (
+    // 💡 OPTIMIZACIÓN: Aplicamos 'will-change: transform' al hover
     <ElectricBorder 
         color={color} 
-        className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400"
+        className="h-full w-full rounded-xl transition-all hover:scale-[1.03] duration-400 will-change-transform"
     >
         <div 
             className="p-4 h-full min-h-36 flex flex-col items-start rounded-xl bg-slate-800/60 hover:bg-slate-700/70 transition-colors backdrop-blur-sm"
@@ -636,7 +525,10 @@ const MisTecnologias: FC = () => {
                     direction="right"
                     logoHeight={32}
                     gap={40}
-                    fadeOutColor="#000000"
+                    // Color de fadeout en negro para fondo oscuro
+                    fadeOutColor="#000000" 
+                    // Desactivar scaleOnHover si causa lag en dispositivos móviles
+                    scaleOnHover={true} 
                 />
             </div>
 
