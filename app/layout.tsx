@@ -1,7 +1,10 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
 // Importación de las fuentes Geist
 import { Geist, Geist_Mono } from "next/font/google"; 
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/next';
 
 // ----------------------------------------------------
 // 1. CONFIGURACIÓN DE FUENTES
@@ -27,17 +30,23 @@ const authorName = "Klibel";
 // 3. OBJETO METADATA OPTIMIZADO PARA SEO
 // ----------------------------------------------------
 export const metadata: Metadata = {
-  // Título principal: El más importante para el SEO. Incluye nombre y habilidades clave.
+  // Título principal
   title: `${authorName}: Desarrollador Web React & Next.js | Portafolio Oficial`,
   
-  // Descripción meta: Crucial para el snippet que aparece en los resultados de búsqueda.
+  // Descripción meta
   description: 
     "Portafolio oficial de Klibel. Desarrollador Full-Stack especializado en la creación de interfaces de usuario modernas, aplicaciones con React, Next.js, y Tailwind CSS. Experto en diseño UI/UX y rendimiento web.",
+
+  // 🔑 CAMBIO CLAVE: Usa la propiedad 'verification' para Google
+  verification: {
+    // Next.js genera automáticamente la etiqueta <meta name="google-site-verification" ...>
+    google: '-eTzResm8vxiYRCAaWNJA6C5uHMhb-BAul24KKCrNSI',
+  },
 
   // Ícono de la página
   icons: '/Ico.png',
 
-  // Palabras clave para la relevancia del contenido (opcional, pero útil)
+  // Palabras clave
   keywords: [
     "Klibel",
     "Portafolio de Klibel",
@@ -51,23 +60,23 @@ export const metadata: Metadata = {
   // Autoría
   authors: [{ name: authorName, url: baseUrl }],
 
-  // URL Canónica: Ayuda a evitar problemas de contenido duplicado y establece la versión oficial.
+  // URL Canónica
   metadataBase: new URL(baseUrl),
   alternates: {
     canonical: '/',
   },
 
-  // Open Graph (OG) - Metadatos para compartir en redes sociales (Facebook, LinkedIn, WhatsApp)
+  // Open Graph (OG)
   openGraph: {
-    title: `${authorName}: Desarrollador React & Next.js | Portafolio Oficial`,
+    title: `${authorName}: Desarrollador React y React Native | Portafolio Oficial`,
     description: "Portafolio de Klibel. Especialista en rendimiento con React, Next.js y diseño de interfaces UI/UX.",
     url: baseUrl,
     siteName: `${authorName}'s Code`,
-    locale: 'es_ES', // Define el idioma para los crawlers
+    locale: 'es_ES',
     type: 'website',
     images: [
       {
-        url: `${baseUrl}/og-image.jpg`, // **DEBES CREAR ESTA IMAGEN (1200x630)**
+        url: `${baseUrl}/og-image.jpg`, 
         width: 1200,
         height: 630,
         alt: `Portafolio de ${authorName} - Desarrollador React y Next.js`,
@@ -75,19 +84,17 @@ export const metadata: Metadata = {
     ],
   },
   
-  // Twitter Cards - Metadatos específicos para X (Twitter)
+  // Twitter Cards
   twitter: {
     card: 'summary_large_image',
     title: `${authorName}: Desarrollador React & Next.js | Portafolio Oficial`,
     description: "Desarrollador Full-Stack Klibel. Experticia en React, Next.js, y desarrollo web de alto rendimiento.",
     images: [`${baseUrl}/og-image.jpg`],
-    // Si tienes un handle de Twitter, descomenta y agrégalo:
-    // creator: '@TuTwitterHandle',
   },
 };
 
 // ----------------------------------------------------
-// 4. COMPONENTE ROOTLAYOUT
+// 4. COMPONENTE ROOTLAYOUT (SIN <head> manual)
 // ----------------------------------------------------
 export default function RootLayout({
   children,
@@ -95,12 +102,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Importante: lang="es" le dice al navegador y a Google que el idioma es español.
+    // Ya no es necesaria la etiqueta <head> aquí, Next.js la inyecta
     <html lang="es"> 
       <body
-        // Clases de fuente y antialiasing
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Analytics />
         {children}
       </body>
     </html>

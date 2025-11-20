@@ -117,10 +117,7 @@ const ModernNav: FC<ModernNavProps> = ({ logoSrc, logoAlt }) => {
             className="md:hidden p-2 rounded-full transition-colors"
             style={{ color: TEXT_COLOR }} // Color de texto inicial
         >
-            {isMenuOpen 
-                ? <X size={24} style={{ color: ACTIVE_COLOR }} /> // Icono X activo
-                : <Menu size={24} style={{ color: TEXT_COLOR, transition: 'color 0.3s' }} className='hover:text-[#61dca3]' />
-            }
+          <Menu size={24} style={{ color: TEXT_COLOR, transition: 'color 0.3s' }} className='hover:text-[#61dca3]' />      
         </button>
 
       </nav>
