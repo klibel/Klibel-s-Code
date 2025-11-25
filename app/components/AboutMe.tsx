@@ -34,15 +34,15 @@ const AboutMe: FC = () => {
             </h1>
             
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4">
-                Mi pasión por el desarrollo Frontend comenzó hace 2 años. Lo que más me motiva es la capacidad de crear y dar estilo a las interfaces, buscando siempre que el diseño sea tan impactante como funcional.
+              Cuento con experiencia en el desarrollo frontend, enfocándome en interfaces modernas, accesibles y de alto rendimiento para web y aplicaciones móviles.
             </p>
-            
+
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4">
-                Mi enfoque se centra en transformar ideas en experiencias fluidas. He forjado mi experiencia a través de proyectos personales que van desde webs completas hasta aplicaciones móviles desarrolladas con React Native.
+              Trabajo con tecnologías actuales como React y React Native, aplicando buenas prácticas para convertir conceptos en productos digitales funcionales y bien estructurados.
             </p>
-            
+
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
-                Me especializo en todo lo que el usuario ve y toca. Descubre en mis proyectos cómo combino la estética con el código limpio.
+              Mi objetivo es ofrecer experiencias de usuario claras, atractivas y eficientes, combinando diseño, usabilidad y solidez técnica.
             </p>
 
             <div className="flex flex-row justify-evenly gap-8 sm:gap-12 mt-8 border-t border-gray-700 pt-6">

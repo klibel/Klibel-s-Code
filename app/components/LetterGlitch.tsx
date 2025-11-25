@@ -1,17 +1,16 @@
 "use client";
-import React, { useRef, useEffect, FC } from 'react';
+import React, { useRef, useEffect, useState, FC } from 'react';
 import dynamic from 'next/dynamic'; 
-import Image from 'next/image'; // <-- ¡IMPORTADO PARA OPTIMIZACIÓN!
-import { Download } from 'lucide-react'; // Importación más ligera
+import Image from 'next/image';
+import { Download } from 'lucide-react';
 
 // Importación dinámica para SocialTiltedCard.
-// Nota: Deberás asegurarte de que SocialTiltedCard use next/image con 'priority' internamente.
 const SocialTiltedCard = dynamic(
   () => import('./SocialTiltedCard'),
   { ssr: false } 
 );
 
-// --- 1. Tipos e Interfaces (RESTAURADAS) ---
+// --- Tipos e Interfaces ---
 interface LetterGlitchProps {
   glitchColors?: string[];
   glitchSpeed?: number;
@@ -21,20 +20,16 @@ interface LetterGlitchProps {
   characters?: string;
 }
 interface RgbColor { r: number; g: number; b: number; }
-// Definición de LetterState (que faltaba)
 interface LetterState { char: string; color: string; targetColor: string; colorProgress: number; }
-// Definición de GridDimensions (que faltaba)
 interface GridDimensions { columns: number; rows: number; }
 
-// --- 2. CONFIGURACIÓN Y FUNCIONES DEL GLITCH ---
+// --- Configuración Glitch ---
 const fontSize = 16;
 const charWidth = 10;
 const charHeight = 20;
-
 const getRandomChar = (characters: string[]): string => characters[Math.floor(Math.random() * characters.length)];
 const getRandomColor = (glitchColors: string[]): string => glitchColors[Math.floor(Math.random() * glitchColors.length)];
 
-// Funciones de utilidad (hexToRgb, interpolateColor, calculateGrid)
 const hexToRgb = (hex: string): RgbColor | null => {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
@@ -55,7 +50,6 @@ const calculateGrid = (width: number, height: number): GridDimensions => {
     return { columns, rows };
 };
 
-
 const PortfolioCover: FC<LetterGlitchProps> = ({
   glitchColors = ['#2b4539', '#61dca3', '#61b3dc'],
   glitchSpeed = 50,
@@ -64,6 +58,9 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
   smooth = true,
   characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*()-_+=/[]{};:<>.,0123456789'
 }) => {
+
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const letters = useRef<LetterState[]>([]);
@@ -71,8 +68,8 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
   const context = useRef<CanvasRenderingContext2D | null>(null);
   const lastGlitchTime = useRef<number>(Date.now());
   const lettersAndSymbols: string[] = Array.from(characters);
-  
-  // Implementación completa de las funciones del Glitch
+
+  // --- Glitch Functions ---
   const initializeLetters = (columns: number, rows: number): void => {
     grid.current = { columns, rows };
     const totalLetters = columns * rows;
@@ -83,18 +80,18 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
       colorProgress: 1
     }));
   };
-  
+
   const drawLetters = (): void => {
     const ctx = context.current;
     const canvas = canvasRef.current;
     if (!ctx || !canvas || letters.current.length === 0) return;
-    
+
     const { width, height } = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, width, height); 
-    
+    ctx.clearRect(0, 0, width, height);
+
     ctx.font = `${fontSize}px monospace`;
     ctx.textBaseline = 'top';
-    
+
     letters.current.forEach((letter, index) => {
       const x = (index % grid.current.columns) * charWidth;
       const y = Math.floor(index / grid.current.columns) * charHeight;
@@ -108,152 +105,134 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    
+
     const dpr = window.devicePixelRatio || 1;
     const rect = parent.getBoundingClientRect();
-    
+
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
 
     const ctx = context.current;
-    if (ctx) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-    
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     const { columns, rows } = calculateGrid(rect.width, rect.height);
     initializeLetters(columns, rows);
     drawLetters();
   };
-  
+
   const updateLetters = (): void => {
     if (!letters.current || letters.current.length === 0) return;
-    
+
     const updateCount = Math.max(1, Math.floor(letters.current.length * 0.05));
-    
     for (let i = 0; i < updateCount; i++) {
       const index = Math.floor(Math.random() * letters.current.length);
       const letter = letters.current[index];
-      
       if (!letter) continue;
-      
+
       letter.char = getRandomChar(lettersAndSymbols);
       letter.targetColor = getRandomColor(glitchColors);
-
-      if (!smooth) {
-        letter.color = letter.targetColor;
-        letter.colorProgress = 1;
-      } else {
-        letter.colorProgress = 0;
-      }
+      letter.colorProgress = smooth ? 0 : 1;
     }
   };
-  
+
   const handleSmoothTransitions = (): void => {
     let needsRedraw = false;
     letters.current.forEach(letter => {
       if (letter.colorProgress < 1) {
-        letter.colorProgress += 0.05; 
+        letter.colorProgress += 0.05;
         if (letter.colorProgress > 1) letter.colorProgress = 1;
-        
-        // Las llamadas a hexToRgb ocurren aquí en cada frame.
-        // Se mantiene por simplicidad, pero es la parte que afecta el rendimiento de CPU.
         const startRgb = hexToRgb(letter.color);
         const endRgb = hexToRgb(letter.targetColor);
-        
         if (startRgb && endRgb) {
           letter.color = interpolateColor(startRgb, endRgb, letter.colorProgress);
           needsRedraw = true;
-        } else {
-            letter.color = letter.targetColor;
-            letter.colorProgress = 1;
-          }
+        }
       }
     });
-
-    if (needsRedraw) {
-      drawLetters();
-    }
+    if (needsRedraw) drawLetters();
   };
-  
+
   const animate = (): void => {
     const now = Date.now();
     if (now - lastGlitchTime.current >= glitchSpeed) {
       updateLetters();
-      if (!smooth) {
-        drawLetters();
-      }
+      if (!smooth) drawLetters();
       lastGlitchTime.current = now;
     }
-    
-    if (smooth) {
-      handleSmoothTransitions();
-    }
-    
+    if (smooth) handleSmoothTransitions();
     animationRef.current = requestAnimationFrame(animate);
   };
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    context.current = canvas.getContext('2d');
+
+    context.current = canvas.getContext("2d");
     if (!context.current) return;
-    
+
     resizeCanvas();
     animate();
-    
-    let resizeTimeout: ReturnType<typeof setTimeout>;
 
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        if (animationRef.current !== null) {
-          cancelAnimationFrame(animationRef.current);
-        }
+        if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
         resizeCanvas();
-        animate(); 
+        animate();
       }, 100);
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
     return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [glitchSpeed, smooth, glitchColors, characters]);
-  
-  
+
   return (
     <div className="relative w-full min-h-screen h-full bg-black overflow-hidden">
-      
-      {/* 1. FONDO - CANVAS (Efecto LetterGlitch) */}
-      <canvas ref={canvasRef} className="block w-full h-full absolute top-0 left-0 z-0" />
-      
-      {/* 2. Capa de Contenido Principal (Responsive Layout) */}
-      <main className='absolute top-0 left-0 w-full  min-h-screen h-full p-4 my-4 flex flex-col lg:flex-row items-center justify-center z-20'>
+
+      {/* Fondo Instantáneo (Negro + Imagen) */}
+      <div
+        className={`absolute inset-0 w-full h-full bg-black transition-opacity duration-700 z-[-3] ${videoLoaded ? "opacity-0" : "opacity-100"}`}
+      />
+
+      {/* Video con Fade-in cuando cargue */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        onLoadedData={() => setVideoLoaded(true)}
+        className={`absolute inset-0 w-full h-full object-cover z-[-3] transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <source src="/video.mp4" type="video/mp4" />
+      </video>
+
+      {/* Canvas Glitch */}
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-0" />
+
+      {/* Contenido principal sin cambios */}
+      <header className='absolute top-0 left-0 w-full min-h-screen h-full p-4 my-4 flex flex-col lg:flex-row items-center justify-center z-20'>
         
-        {/* 2.1 Columna Izquierda (Texto e Info) */}
+        {/* Columna Izquierda */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center items-center text-center lg:text-left px-5 lg:ml-16 xl:ml-28">
-          
+
           <div>
-            {/* Logo y Título */}
+            {/* Logo + Título */}
             <div className="mb-4 flex items-center justify-center lg:justify-start">
               <div className='w-18 h-10 sm:w-20 sm:h-12 lg:w-24 lg:h-14 xl:w-30 xl:h-20 flex items-center mr-2'>
-                
-                {/* 🔑 OPTIMIZACIÓN LCP: Usar Image de next/image con 'priority' */}
                 <Image 
                   src="/Icon.png" 
                   alt="Klibel's Code Logo" 
-                  // Asegúrate de que el width y height sean los reales para evitar CLS
                   width={96} 
                   height={96}
-                  priority // <-- ¡Asegura que el logo cargue primero!
-                  className="w-18 h-18 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-30 xl:h-30 drop-shadow-neon"
+                  priority
+                  className="drop-shadow-neon"
                   style={{ filter: `drop-shadow(0 0 5px #61dca3)` }}
                 />
               </div>
@@ -261,51 +240,52 @@ const PortfolioCover: FC<LetterGlitchProps> = ({
                 Klibel's <span className="text-gray-200">CODE</span>
               </h1>
             </div>
-            
-            {/* Bienvenida y Descripción */}
+
+            {/* Bienvenida */}
             <h2 className="text-base lg:text-lg xl:text-xl font-semibold text-gray-100 tracking-tight">
               Bienvenido a mi Portafolio Digital
             </h2>
             <p className="text-sm lg:text-base xl:text-lg text-gray-400 max-w-lg mb-4">
-              Soy un apasionado por el desarrollo Frontend de webs y apps Android.
-              <span className='hidden md:inline mx-1'> 
-                Me especializo en transformar ideas creativas en experiencias digitales fluidas y atractivas usando tecnologías modernas como React. 
-              </span> 
-              Explora mi código y mis proyectos.
+              Soy desarrollador frontend con enfoque en la creación de interfaces web y aplicaciones móviles para Android. 
+              <span className='hidden md:inline mx-1'>
+                Me gusta convertir ideas en soluciones digitales eficientes, manteniendo una experiencia visual y funcional moderna con tecnologías como React.
+              </span>
+              Te invito a conocer mis proyectos y explorar mi trabajo.
             </p>
-            
+
           </div>
-            {/* BOTÓN DESCARGAR CV */}
-            <a
-              href="/C.V.pdf"
-              download
-              className="flex items-center justify-center px-6 py-3 text-sm font-bold rounded-full text-black bg-[#61dca3] hover:bg-[#86f0c6] transition-all duration-300 shadow-md shadow-[#61dca3]/50 uppercase tracking-wider"
-            >
-              <Download size={18} className='mr-2' />
-              Descargar CV
-            </a>
+
+          {/* Botón CV */}
+          <a
+            href="/C.V.pdf"
+            download
+            className="flex items-center justify-center px-6 py-3 text-sm font-bold rounded-full text-black bg-[#61dca3] hover:bg-[#86f0c6] transition-all duration-300 shadow-md shadow-[#61dca3]/50 uppercase tracking-wider"
+          >
+            <Download size={18} className='mr-2' />
+            Descargar CV
+          </a>
         </div>
-        
-        {/* 2.2 Columna Derecha (Tilted Card) */}
+
+        {/* Columna Derecha */}
         <div className="w-full lg:w-1/2 flex justify-center mt-5 lg:mt-0">
           <SocialTiltedCard
             imageSrc="/klibel.png"
             captionText="KLIBEL ROMERO"
             altText="Hexagonal Profile ID"
             instagramHandle="@klibel.romero"
-            maxSize="500px" 
+            maxSize="500px"
           />
-        </div> 
-      </main>
+        </div>
+      </header>
 
-      {/* 3. Capas de Viñeta */}
+      {/* Vignette Layers */}
       {outerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,rgba(0,0,0,0)_60%,rgba(0,0,0,1)_100%)] z-10"></div>
       )}
       {centerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.5)_150%)] z-10"></div>
       )}
-      
+
     </div>
   );
 };

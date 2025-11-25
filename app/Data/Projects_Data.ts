@@ -29,7 +29,7 @@ export interface Project {
     {
         id: 3,
         title: "Asegura Aqui!",
-        description: "Una web de seguros para autos, Donde puedes llenar la informacion de los formularios y al finalizar imprime un PDF, Con un seguro (falso ya que es una sitio de mentira)",
+        description: "Sitio web orientado a la gestión de seguros automotrices. Permite al usuario completar formularios interactivos y generar un PDF final con los datos ingresados, simulando el proceso real de emisión de una póliza.",
         imageUrl: "/Asegura-aqui-Portada.png",
         link: "https://repository-the-asegura-aqui.onrender.com/",
         technologies: ["HTML", "Tailwind CSS", "JavaScript"],

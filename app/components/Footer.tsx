@@ -4,7 +4,7 @@ import { FC, memo } from 'react';
 import { Mail, Linkedin, Github, Phone, Instagram, Send } from 'lucide-react';
 
 const CONTACT_INFO = {
-    email: "klibel.a.romeo@gmail.com", 
+    email: "klibel.a.romero@gmail.com", 
     linkedin: "https://www.linkedin.com/in/klibel-romero-418b01305/", 
     github: "https://github.com/klibel", 
     tiktok: "https://www.tiktok.com/@klibel_romero", 
@@ -42,7 +42,7 @@ const socialLinks = [
 
 const FooterComponent: FC = () => {
     return (
-        <footer className="w-full bg-gray-950 border-t border-[#61dca3]/50 text-white font-inter py-8 px-5">
+        <div className="w-full bg-gray-950 border-t border-[#61dca3]/50 text-white font-inter py-8 px-5">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-3 pb-10 border-b border-gray-800">
                     
@@ -73,7 +73,7 @@ const FooterComponent: FC = () => {
                         </p>
                         <a
                             href={`mailto:${CONTACT_INFO.email}`}
-                            className="inline-flex items-center justify-center w-full sm:w-auto mt-4 px-6 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-gray-900 bg-[#61dca3] hover:bg-[#52c191] hover:text-white transition duration-500"
+                            className="inline-flex items-center justify-center w-full sm:w-auto mt-4 px-6 py-2 border border-transparent text-xs font-medium rounded-full shadow-sm text-gray-900 bg-[#61dca3] hover:bg-[#52c191] hover:text-white transition duration-500"
                         >
                             <Mail size={16} className="mr-2" /> 
                             Enviar Mensaje
@@ -138,7 +138,7 @@ const FooterComponent: FC = () => {
                     </p>
                 </div>
             </div>
-        </footer>
+        </div>
     );
 };
 
