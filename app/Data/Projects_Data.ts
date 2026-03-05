@@ -37,7 +37,7 @@ export interface Project {
     {
         id: 4,
         title: "Impostor FC",
-        description: "App Android para jugar al Importor Futbolero, Se basa en un juego donde se crean su perfil los participantes y aleatoriamente se selecciona uno como impostor.",
+        description: "App Android para jugar al Impostor Futbolero, Se basa en un juego donde se crean su perfil los participantes y aleatoriamente se selecciona uno como impostor.",
         imageUrl: "/impostorFC-portada.png",
         link: "/Impostor FC.apk",
         technologies: ["React Native","Expo","TypeScript", "CSS", ],
@@ -45,9 +45,17 @@ export interface Project {
     {
         id: 5,
         title: "QQSV",
-        description: "QQSV (quien quiere ser venezolano) es una App android, Sobre conocimiento venezolano como tradiciones, frases, comidas y otras cosas",
+        description: "QQSV (Quién quiere ser venezolano) es una App android, Sobre conocimiento venezolano como tradiciones, frases, comidas y otras cosas",
         imageUrl: "/QQSV-portada.png",
         link: "/Q Q S V.apk",
         technologies: ["React Native","Expo","TypeScript", "CSS", ],
+    },
+    {
+        id: 6,
+        title: "PadelStats Pro",
+        description: "PadelStats Pro, Es una App android que te ayuda a generar partidas de Padel con tus amigos, Contiene las funcionalidades adecuada para generar enfrentamiento y llevar el control de puntos",
+        imageUrl: "/PadelStatsPro.png",
+        link: "/PadelStats-Pro.apk",
+        technologies: ["React Native","Expo","JavaScript", "CSS", ],
     },
   ];

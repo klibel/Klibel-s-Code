@@ -42,8 +42,6 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
   },
 
-  themeColor: "#000000",
-
   keywords: [
     "Klibel's Code",
     "Klibel",
@@ -99,6 +97,11 @@ export const metadata: Metadata = {
       "logo": `${baseUrl}/Ico.png`,
     }),
   },
+};
+
+// VIEWPORT CONFIG
+export const viewport = {
+  themeColor: "#000000",
 };
 
 // ROOT LAYOUT
