@@ -6,7 +6,7 @@ import React, {
 } from 'react';
 import {
     SiReact, SiTailwindcss, SiBootstrap, SiGit, SiGithub, SiVscodium, 
-    SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss3, SiVite
+    SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss, SiVite
 } from "react-icons/si";
 import { Phone, Zap } from "lucide-react";
 
@@ -46,7 +46,7 @@ const LOOP_SKILLS: LogoLoopItem[] = [
   { node: <Phone size={30} color="#61DAFB" />, title: "React Native / Expo", color: "#61DAFB" },
   { node: <div className='h-[30px] flex items-center justify-center font-bold text-xl text-white bg-teal-500 rounded-sm px-1'>AI</div>, title: "Inteligencia Artificial", color: "#2DD4BF" },
   { node: <SiHtml5 size={30} color="#E34F26" />, title: "HTML5", color: "#E34F26" },
-  { node: <SiCss3 size={30} color="#264de4" />, title: "CSS3", color: "#264de4" },
+  { node: <SiCss size={30} color="#264de4" />, title: "CSS3", color: "#264de4" },
   { node: <SiVite size={30} color="#646CFF" />, title: "Vite", color: "#646CFF" },
 ];
 
@@ -60,7 +60,7 @@ interface GridSkillItem {
 
 const ALL_SKILLS: GridSkillItem[] = [
   { name: "HTML5", icon: <SiHtml5 size={30} color="#E34F26" />, color: "#E34F26", description: "Dominio de marcado semántico, accesibilidad y estructuras modernas." },
-  { name: "CSS3", icon: <SiCss3 size={30} color="#264de4" />, color: "#264de4", description: "Estilizado avanzado, Flexbox, Grid Layout, y animaciones CSS." },
+  { name: "CSS3", icon: <SiCss size={30} color="#264de4" />, color: "#264de4", description: "Estilizado avanzado, Flexbox, Grid Layout, y animaciones CSS." },
   { name: "JavaScript / JS", icon: <SiJavascript size={30} color="#F0DB4F" />, color: "#F0DB4F", description: "Lógica de cliente y manipulación de DOM, ES6+." },
   { name: "TypeScript / TSX", icon: <SiTypescript size={30} color="#007ACC" />, color: "#007ACC", description: "Implementación de tipado estático para código más robusto y escalable." },
   { name: "React (Web)", icon: <SiReact size={30} color="#61DAFB" />, color: "#61DAFB", description: "Construcción de interfaces de usuario escalables (Hooks, Context)." },
