@@ -4,11 +4,11 @@ import { FC, memo } from 'react';
 import { Mail, Linkedin, Github, Phone, Instagram, Send } from 'lucide-react';
 
 const CONTACT_INFO = {
-    email: "klibel.a.romero@gmail.com", 
+    email: "klibelcode@gmail.com", 
     linkedin: "https://www.linkedin.com/in/klibel-romero-418b01305/", 
     github: "https://github.com/klibel", 
     tiktok: "https://www.tiktok.com/@klibel_romero", 
-    instagram: "https://www.instagram.com/klibel.romero/", 
+    instagram: "https://www.instagram.com/klibelscode/", 
     phone: "+58 412 104 0377",
     location: "Punto Fijo, Falcón, Venezuela"
 };

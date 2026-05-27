@@ -150,7 +150,7 @@ const MisTecnologias: FC = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-black text-white p-8 w-full" id="tecnologias">
+        <div className="min-h-screen bg-black text-white px-3 py-8 w-full" id="tecnologias">
             
             <div className="max-w-7xl mx-auto mb-12 text-center">
                 <h2 className="text-3xl font-extrabold text-[#61dca3] mb-4">

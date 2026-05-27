@@ -29,15 +29,15 @@ export default function Home() {
       <DynamicRouterWrapper logoAlt="Icon" logoSrc="/Icon.png" />
 
       {/* SECCIONES */}
-      <section id="sobreMi" className="w-full py-20">
+      <section id="sobreMi" className="w-full">
         <AboutMe />
       </section>
 
-      <section id="tecnologias" className="w-full py-20 border-t border-gray-800">
+      <section id="tecnologias" className="w-fullborder-t border-gray-800">
         <MyTechnologies />
       </section>
 
-      <section id="proyectos" className="w-full py-20 border-t border-gray-800">
+      <section id="proyectos" className="w-full border-t border-gray-800">
         <MyProjects />
       </section>
 

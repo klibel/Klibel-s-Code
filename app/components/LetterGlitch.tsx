@@ -11,7 +11,7 @@ const SocialTiltedCard = dynamic(
 
 const PortfolioCover: FC = () => {
   return (
-    <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-black">
+    <div className="relative w-full min-h-screen h-auto flex items-center justify-center overflow-hidden bg-black">
 
       {/* Glow principal */}
       <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#22ff88] opacity-25 blur-[180px] rounded-full"></div>
@@ -31,7 +31,7 @@ const PortfolioCover: FC = () => {
           <div className="max-w-xl">
 
             {/* Logo + Título */}
-            <div className="mb-6 flex items-center justify-center">
+            <div className="mb-6 flex items-center justify-center lg:justify-start">
               <div className="w-16 h-10 sm:w-20 sm:h-12 lg:w-24 lg:h-14 flex items-center mr-3">
                 <Image
                   src="/Icon.png"
@@ -43,19 +43,19 @@ const PortfolioCover: FC = () => {
                 />
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold uppercase tracking-wide">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold uppercase tracking-wide">
                 <span className="text-[#22ff88]">Klibel's</span>{" "}
                 <span className="text-gray-200">CODE</span>
               </h1>
             </div>
 
             {/* Subtítulo */}
-            <h2 className="text-lg lg:text-xl font-semibold text-gray-100 mb-4">
+            <h2 className="text-lg lg:text-xl  lg:text-left font-semibold text-gray-100 mb-4">
               Bienvenido a mi Portafolio Digital
             </h2>
 
             {/* Descripción */}
-            <p className="text-gray-400 mb-8 leading-relaxed">
+            <p className="text-gray-400 lg:text-left mb-8 leading-relaxed">
               Soy desarrollador frontend enfocado en la creación de
               interfaces web modernas y aplicaciones móviles para Android.
               Transformo ideas en soluciones digitales eficientes utilizando

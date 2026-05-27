@@ -12,11 +12,11 @@ export interface Project {
   export const PROJECTS_DATA: Project[] = [
     {
         id: 1,
-        title: "Alejandro's Auto Supplies",
-        description: "Es una plataforma de comercio electrónico especializada en la venta de repuestos y accesorios para vehículos.",
-        imageUrl: "/Alejandro's-Auto-Supplies.png",
-        link: "https://we-bde-repuestos.vercel.app/",
-        technologies: ["React", "TypeScript", "CSS"],
+        title: "GeoMetrics — Dashboard Global de Países",
+        description: "Aplicación web interactiva que consume la API de Rest Countries para analizar indicadores demográficos globales en tiempo real.",
+        imageUrl: "/GeoMetrics.png",
+        link: "https://geometrics-kappa.vercel.app/",
+        technologies: ["React", "TypeScript", "CSS", "vite", "API", "material-ui", "Bootstrap" ],
     },
     {
         id: 2,
