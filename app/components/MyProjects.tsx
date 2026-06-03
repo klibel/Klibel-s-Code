@@ -1,15 +1,16 @@
-// MyProjects.tsx
-
 "use client";
 
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-// Asegúrate de que esta importación sea correcta
 import { PROJECTS_DATA, Project } from '../Data/Projects_Data'; 
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-// --- 1. Define o Importa las Props de Particles ---
-// Lo ideal es que estas se exporten de Particles.tsx e importen aquí, 
-// pero las definimos para asegurar la corrección del error.
+// Registrar plugin de forma segura para Next.js (SSR)
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
+
 interface ParticlesProps {
     particleCount?: number;
     particleSpread?: number;
@@ -25,17 +26,12 @@ interface ParticlesProps {
     className?: string;
 }
 
-// --- 2. Carga Dinámica con Tipado (Solución del error de sobrecarga) ---
 const Particles = dynamic<ParticlesProps>(() => 
-    // ✅ CORRECCIÓN: Si exportaste como 'export const Particles', usa mod.Particles.
-    // Si la exportación es 'export default Particles', usa mod.default.
-    // Mantenemos mod.Particles según el código anterior.
     import('./Particles').then((mod) => mod.Particles), {
         ssr: false, 
         loading: () => <div className="w-full h-full bg-transparent" />, 
 });
 
-// --- Project Card Component (Sin cambios) ---
 interface ProjectCardProps {
     project: Project;
 }
@@ -46,12 +42,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
         target="_blank"
         rel="noopener noreferrer"
         className="
-            group flex flex-col overflow-hidden justify-between items-center w-full rounded-xl shadow-2xl bg-gray-800/90 backdrop-blur-sm 
-            transform transition-all duration-500 hover:scale-[1.05] hover:shadow-[#61dca3]/50 
+            group flex flex-col overflow-hidden justify-between items-center w-full h-full rounded-xl shadow-2xl bg-gray-800/90 backdrop-blur-sm 
+            transform transition-all duration-500 hover:scale-[1.03] hover:shadow-[#61dca3]/50 
             border border-transparent hover:border-[#61dca3] focus:outline-none focus:ring-4 focus:ring-[#61dca3]/50 
         "
     >
-        <div className="aspect-video overflow-hidden">
+        <div className="aspect-video overflow-hidden w-full">
             <img 
                 src={project.imageUrl} 
                 alt={`Vista previa de ${project.title}`} 
@@ -63,12 +59,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
             />
         </div>
 
-        <div className="px-5 py-2 text-white">
-            <h3 className="text-lg font-bold text-[#61dca3]">{project.title}</h3>
-            <p className="text-sm text-gray-300 mb-2">{project.description}</p>
+        <div className="px-5 py-4 text-white w-full flex-grow">
+            <h3 className="text-lg font-bold text-[#61dca3] mb-1">{project.title}</h3>
+            <p className="text-sm text-gray-300 leading-relaxed mb-2">{project.description}</p>
         </div>
             
-        <div className="flex flex-wrap justify-center gap-2 px-5 pb-5 pt-2 border-t w-full border-gray-700">
+        <div className="flex flex-wrap justify-center gap-2 px-5 pb-5 pt-3 border-t w-full border-gray-700">
             {project.technologies.map(tech => (
                 <span 
                     key={tech} 
@@ -81,10 +77,63 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
     </a>
 );
 
-// --- Main App Component (MyProjects View) ---
 export const MyProjects: React.FC = () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (!containerRef.current) return;
+
+        const ctx = gsap.context(() => {
+            
+            // 1. Animación del título y subtítulo de la sección
+            gsap.fromTo(".projects-header",
+                { opacity: 0, y: -20 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: ".projects-header",
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                    }
+                }
+            );
+
+            // 2. Animación fluida en cascada (stagger) para las tarjetas de proyectos
+            const cards = gsap.utils.toArray(".project-card-animate");
+            
+            if (cards.length > 0) {
+                // Estado inicial preventivo para evitar destellos visuales bruscos
+                gsap.set(cards, { opacity: 0, y: 35, scale: 0.97 });
+
+                gsap.to(cards, {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    duration: 0.6,
+                    stagger: 0.08, // Despliegue milimétrico dinámico uno tras otro
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: ".projects-grid",
+                        start: "top 80%", // Se activa cuando la rejilla entra al 80% del viewport
+                        toggleActions: "play none none none"
+                    }
+                });
+            }
+
+        }, containerRef);
+
+        return () => ctx.revert(); // Limpieza íntegra de ScrollTriggers
+    }, []);
+
     return (
-        <div className="flex justify-center min-h-screen w-full bg-[#080010] overflow-hidden font-sans">
+        <div 
+            ref={containerRef} 
+            className="flex justify-center min-h-screen w-full bg-[#080010] overflow-hidden font-sans relative"
+            id="proyectos"
+        >
             <div className="absolute inset-0 z-0">
                 <Particles 
                     particleCount={150}
@@ -99,9 +148,11 @@ export const MyProjects: React.FC = () => {
                 />
             </div>
 
-            <div className="relative z-10 p-5 md:p-10 mx-auto">
-                <header className="text-center mb-8 pt-4">
-                    <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold text-[#61dca3] leading-tight">
+            <div className="relative z-10 p-5 md:p-10 mx-auto max-w-7xl w-full flex flex-col items-center">
+                
+                {/* Cabecera con opacidad base inicial para la transición */}
+                <header className="projects-header opacity-0 text-center mb-8 pt-4">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#61dca3] leading-tight">
                         Mis Proyectos
                     </h1>
                     <p className="text-sm md:text-base lg:text-lg text-gray-300 mt-1">
@@ -109,9 +160,15 @@ export const MyProjects: React.FC = () => {
                     </p>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl">
+                {/* Rejilla de proyectos identificada por clase para el Trigger global */}
+                <div className="projects-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
                     {PROJECTS_DATA.map(project => (
-                        <ProjectCard key={project.id} project={project} />
+                        <div 
+                            key={project.id} 
+                            className="project-card-animate opacity-0 w-full"
+                        >
+                            <ProjectCard project={project} />
+                        </div>
                     ))}
                 </div>
             </div>

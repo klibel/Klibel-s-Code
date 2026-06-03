@@ -2,13 +2,20 @@
 
 import React, { 
     useRef, useMemo, useState, memo, FC, 
-    ReactNode, useId, useLayoutEffect, useCallback
+    ReactNode, useLayoutEffect
 } from 'react';
 import {
     SiReact, SiTailwindcss, SiBootstrap, SiGit, SiGithub, SiVscodium, 
-    SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss, SiVite
+    SiCanva, SiJavascript, SiTypescript, SiHtml5, SiCss, SiVite, SiGreensock
 } from "react-icons/si";
 import { Phone, Zap } from "lucide-react";
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Registrar plugin de GSAP de forma segura
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 /* -------------------- UTILS -------------------- */
 
@@ -39,6 +46,7 @@ const LOOP_SKILLS: LogoLoopItem[] = [
   { node: <SiTypescript size={30} color="#007ACC" />, title: "TypeScript / TSX", color: "#007ACC" },
   { node: <SiReact size={30} color="#61DAFB" />, title: "React (Web)", color: "#61DAFB" },
   { node: <SiTailwindcss size={30} color="#06B6D4" />, title: "Tailwind CSS", color: "#06B6D4" },
+  { node: <SiGreensock size={30} color="#82D726" />, title: "GSAP", color: "#82D726" },
   { node: <SiGit size={30} color="#F05032" />, title: "Git", color: "#F05032" },
   { node: <SiGithub size={30} color="#FFFFFF" />, title: "GitHub", color: "#FFFFFF" },
   { node: <SiVscodium size={30} color="#007ACC" />, title: "VS Code", color: "#007ACC" },
@@ -65,6 +73,7 @@ const ALL_SKILLS: GridSkillItem[] = [
   { name: "TypeScript / TSX", icon: <SiTypescript size={30} color="#007ACC" />, color: "#007ACC", description: "Implementación de tipado estático para código más robusto y escalable." },
   { name: "React (Web)", icon: <SiReact size={30} color="#61DAFB" />, color: "#61DAFB", description: "Construcción de interfaces de usuario escalables (Hooks, Context)." },
   { name: "Tailwind CSS", icon: <SiTailwindcss size={30} color="#06B6D4" />, color: "#06B6D4", description: "Utilidad-first CSS para prototipado rápido, diseños responsivos y estéticos." },
+  { name: "GSAP", icon: <SiGreensock size={30} color="#82D726" />, color: "#82D726", description: "Creación de animaciones e interacciones web avanzadas de alto rendimiento (ScrollTrigger)." },
   { name: "Bootstrap", icon: <SiBootstrap size={30} color="#7952B3" />, color: "#7952B3", description: "Experiencia en el framework CSS más popular para grids, componentes UI y temas." },
   { name: "Vite", icon: <SiVite size={30} />, color: "#646CFF", description: "Bundler ultrarrápido para React y TypeScript." },
   { name: "Git", icon: <SiGit size={30} color="#F05032" />, color: "#F05032", description: "Control de versiones distribuido, manejo avanzado de ramas y fusiones." },
@@ -130,23 +139,35 @@ const LogoLoop: FC<{ logos: LogoLoopItem[] }> = ({ logos }) => (
 /* -------------------- MAIN COMPONENT -------------------- */
 
 const MisTecnologias: FC = () => {
-    const [isVisible, setIsVisible] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+    const gridRef = useRef<HTMLDivElement>(null);
 
+    // ⚡ INTERACCIÓN FLUIDA CON GSAP SCROLLTRIGGER
     useLayoutEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.2 }
-        );
+        if (!gridRef.current) return;
 
-        if (ref.current) observer.observe(ref.current);
+        const cards = gridRef.current.children;
 
-        return () => observer.disconnect();
+        // Establecer estado inicial invisible antes de que comience la animación
+        gsap.set(cards, { opacity: 0, y: 40, scale: 0.95 });
+
+        const animation = gsap.to(cards, {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.6,
+            stagger: 0.06, // Retraso encadenado milimétrico entre cartas
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: gridRef.current,
+                start: 'top 85%', // Comienza cuando la rejilla entra al 85% del viewport
+                toggleActions: 'play none none none'
+            }
+        });
+
+        return () => {
+            animation.scrollTrigger?.kill();
+            animation.kill();
+        };
     }, []);
 
     return (
@@ -166,19 +187,11 @@ const MisTecnologias: FC = () => {
             </div>
 
             <div
-                ref={ref}
+                ref={gridRef}
                 className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
             >
-                {ALL_SKILLS.map((skill, index) => (
-                    <div
-                        key={skill.name}
-                        className={`transition-all duration-700 ease-out ${
-                            isVisible
-                                ? "opacity-100 translate-y-0"
-                                : "opacity-0 translate-y-8"
-                        }`}
-                        style={{ transitionDelay: `${index * 80}ms` }}
-                    >
+                {ALL_SKILLS.map((skill) => (
+                    <div key={skill.name}>
                         <ElectricBorder color={skill.color}>
                             <div className="p-5 min-h-40 bg-slate-800/60 hover:bg-slate-700/70 rounded-xl transition-colors backdrop-blur-sm">
                                 <div className="flex items-center mb-3">
