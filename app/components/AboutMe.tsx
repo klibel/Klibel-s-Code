@@ -146,10 +146,10 @@ const AboutMe: FC = () => {
 
                 <div className="stat-box flex flex-col items-center">
                     <span className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-[#61dca3] leading-none">
-                        5+
+                        7+
                     </span>
                     <span className="text-xs sm:text-sm font-medium text-gray-200 text-center uppercase tracking-wider mt-1">
-                        Proyectos Personales
+                        Proyectos
                     </span>
                 </div>
             </div>

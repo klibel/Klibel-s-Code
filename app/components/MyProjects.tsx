@@ -59,9 +59,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
             />
         </div>
 
-        <div className="px-5 py-4 text-white w-full flex-grow">
+        <div className="px-4 py-2 text-white w-full flex-grow">
             <h3 className="text-lg font-bold text-[#61dca3] mb-1">{project.title}</h3>
-            <p className="text-sm text-gray-300 leading-relaxed mb-2">{project.description}</p>
+            <p className="text-sm text-gray-300 leading-relaxed mb-1">{project.description}</p>
         </div>
             
         <div className="flex flex-wrap justify-center gap-2 px-5 pb-5 pt-3 border-t w-full border-gray-700">
