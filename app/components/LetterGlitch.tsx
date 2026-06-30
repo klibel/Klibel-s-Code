@@ -97,7 +97,7 @@ const PortfolioCover: FC = () => {
               {/* Botón CV */}
               <div className="hero-animate opacity-0 flex justify-center lg:justify-start w-full">
                 <a
-                  href="/C.V.pdf"
+                  href="/C.V-Klibel-Romero-DEV.pdf"
                   download
                   className="flex items-center justify-center w-full sm:w-auto px-8 py-3 text-xs sm:text-sm font-bold rounded-full text-black bg-[#22ff88] hover:bg-[#4dff9f] transition-all duration-300 shadow-[0_0_25px_rgba(34,255,136,0.5)] uppercase tracking-wider"
                 >
